@@ -8,13 +8,13 @@ const app = document.querySelector('#app')
 // Scene / camera / renderer
 // --------------------------------------------------
 const scene = new THREE.Scene()
-scene.fog = new THREE.Fog(0x081a2f, 60, 420)
+scene.fog = new THREE.Fog(0x081a2f, 60, 520)
 
 const camera = new THREE.PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
   0.1,
-  500
+  700
 )
 camera.position.set(0, 10.5, 24)
 
@@ -31,7 +31,7 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 controls.enablePan = false
 controls.minDistance = 10
-controls.maxDistance = 42
+controls.maxDistance = 260
 controls.maxPolarAngle = Math.PI / 2.05
 controls.target.set(0, 2.8, 0)
 
@@ -77,8 +77,8 @@ function makeStarField(count, spread, size, opacity) {
   return new THREE.Points(geometry, material)
 }
 
-const starsFar = makeStarField(1200, 280, 0.18, 0.95)
-const starsNear = makeStarField(450, 180, 0.28, 0.85)
+const starsFar = makeStarField(1200, 320, 0.18, 0.95)
+const starsNear = makeStarField(450, 200, 0.28, 0.85)
 
 scene.add(starsFar)
 scene.add(starsNear)
@@ -436,8 +436,8 @@ function makeIsland({
 // Planet map placeholder
 // --------------------------------------------------
 function makePlanetMap({
-  position = [0, -150, -270],
-  radius = 42,
+  position = [0, -84, -146],
+  radius = 24,
 }) {
   const world = new THREE.Group()
   world.position.set(...position)
@@ -453,11 +453,11 @@ function makePlanetMap({
   world.add(planet)
 
   const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(radius * 1.04, 48, 48),
+    new THREE.SphereGeometry(radius * 1.045, 48, 48),
     new THREE.MeshBasicMaterial({
       color: 0x6fffe0,
       transparent: true,
-      opacity: 0.08,
+      opacity: 0.09,
       side: THREE.BackSide,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -471,7 +471,7 @@ function makePlanetMap({
   world.add(echoGarden)
 
   const ground = new THREE.Mesh(
-    new THREE.CylinderGeometry(15.5, 14.2, 1.0, 42),
+    new THREE.CylinderGeometry(8.6, 7.8, 0.7, 42),
     new THREE.MeshStandardMaterial({
       color: 0x2f8b63,
       roughness: 1,
@@ -481,7 +481,7 @@ function makePlanetMap({
   echoGarden.add(ground)
 
   const lagoon = new THREE.Mesh(
-    new THREE.CylinderGeometry(3.2, 2.9, 0.08, 28),
+    new THREE.CylinderGeometry(1.9, 1.7, 0.06, 28),
     new THREE.MeshStandardMaterial({
       color: 0x79e8ff,
       emissive: 0x2fd8ff,
@@ -490,79 +490,79 @@ function makePlanetMap({
       opacity: 0.92,
     })
   )
-  lagoon.position.set(-2.6, 0.55, 1.4)
+  lagoon.position.set(-1.2, 0.42, 0.8)
   echoGarden.add(lagoon)
 
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 26; i++) {
     const angle = Math.random() * Math.PI * 2
-    const radiusFromCenter = 1.5 + Math.random() * 9.0
+    const radiusFromCenter = 0.8 + Math.random() * 5.1
     const x = Math.cos(angle) * radiusFromCenter
     const z = Math.sin(angle) * radiusFromCenter
 
     if (Math.random() > 0.42) {
-      makePalm(echoGarden, x, z, 0.95 + Math.random() * 0.5, 0x46b974)
+      makePalm(echoGarden, x, z, 0.75 + Math.random() * 0.35, 0x46b974)
     } else {
-      makeTree(echoGarden, x, z, 0.8 + Math.random() * 0.4, 0x2f8f59)
+      makeTree(echoGarden, x, z, 0.62 + Math.random() * 0.3, 0x2f8f59)
     }
   }
 
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 8; i++) {
     const hill = new THREE.Mesh(
-      new THREE.ConeGeometry(0.8 + Math.random() * 0.8, 1.4 + Math.random() * 1.0, 10),
+      new THREE.ConeGeometry(0.45 + Math.random() * 0.45, 0.8 + Math.random() * 0.6, 10),
       new THREE.MeshStandardMaterial({ color: 0x397a50 })
     )
 
     const angle = Math.random() * Math.PI * 2
-    const radiusFromCenter = 2.0 + Math.random() * 8.0
+    const radiusFromCenter = 1.2 + Math.random() * 4.4
     hill.position.set(
       Math.cos(angle) * radiusFromCenter,
-      0.95,
+      0.65,
       Math.sin(angle) * radiusFromCenter
     )
     echoGarden.add(hill)
   }
 
   const markerA = new THREE.Mesh(
-    new THREE.ConeGeometry(0.32, 1.4, 8),
+    new THREE.ConeGeometry(0.22, 0.85, 8),
     new THREE.MeshStandardMaterial({
       color: 0xffd86b,
       emissive: 0xffd86b,
       emissiveIntensity: 0.18,
     })
   )
-  markerA.position.set(-4.5, 1.55, -3.2)
+  markerA.position.set(-2.2, 0.95, -1.5)
   echoGarden.add(markerA)
 
   const markerB = new THREE.Mesh(
-    new THREE.ConeGeometry(0.32, 1.4, 8),
+    new THREE.ConeGeometry(0.22, 0.85, 8),
     new THREE.MeshStandardMaterial({
       color: 0x86eaff,
       emissive: 0x86eaff,
       emissiveIntensity: 0.18,
     })
   )
-  markerB.position.set(4.8, 1.55, 2.1)
+  markerB.position.set(2.4, 0.95, 1.1)
   echoGarden.add(markerB)
 
   const markerC = new THREE.Mesh(
-    new THREE.ConeGeometry(0.32, 1.4, 8),
+    new THREE.ConeGeometry(0.22, 0.85, 8),
     new THREE.MeshStandardMaterial({
       color: 0xb3ff9a,
       emissive: 0xb3ff9a,
       emissiveIntensity: 0.18,
     })
   )
-  markerC.position.set(1.2, 1.55, 5.4)
+  markerC.position.set(0.6, 0.95, 2.9)
   echoGarden.add(markerC)
 
-  makeMistCluster(echoGarden, -5.8, 1.2, -3.4, 3.2, 6)
-  makeMistCluster(echoGarden, 4.8, 1.2, 2.8, 2.8, 5)
-  makeMistCluster(echoGarden, 0.5, 1.5, -1.0, 3.6, 7)
-  makeMistCluster(echoGarden, -1.4, 1.25, 4.4, 3.0, 5)
+  makeMistCluster(echoGarden, -2.8, 0.9, -1.8, 1.8, 6)
+  makeMistCluster(echoGarden, 2.5, 0.9, 1.5, 1.5, 5)
+  makeMistCluster(echoGarden, 0.2, 1.15, -0.5, 2.0, 7)
+  makeMistCluster(echoGarden, -0.8, 0.95, 2.2, 1.6, 5)
 
   for (let i = 0; i < 10; i++) {
     const puff = new THREE.Mesh(
-      new THREE.SphereGeometry(1.8 + Math.random() * 1.2, 16, 16),
+      new THREE.SphereGeometry(1.2 + Math.random() * 0.9, 16, 16),
       new THREE.MeshStandardMaterial({
         color: 0xdffcff,
         transparent: true,
@@ -623,9 +623,12 @@ makeIsland({
   type: 'contact',
 })
 
+const MAP_CENTER = new THREE.Vector3(0, -188, -360)
+const MAP_RADIUS = 58
+
 const planetMap = makePlanetMap({
-  position: [0, -150, -270],
-  radius: 42,
+  position: [MAP_CENTER.x, MAP_CENTER.y, MAP_CENTER.z],
+  radius: MAP_RADIUS,
 })
 
 // --------------------------------------------------
@@ -645,44 +648,83 @@ const VIEWS = {
     target: [-30, 8, -32],
   },
   map: {
-    camera: [0, -72, -205],
-    target: [0, -108, -270],
+    camera: [0, -121, -262],
+    target: [0, -136, -338],
   },
 }
 
 const desiredCameraPosition = new THREE.Vector3(...VIEWS.hero.camera)
 const desiredTarget = new THREE.Vector3(...VIEWS.hero.target)
 
+let activeViewName = 'hero'
 let flight = null
 
-function easeInOutCubic(x) {
-  return x < 0.5
-    ? 4 * x * x * x
-    : 1 - Math.pow(-2 * x + 2, 3) / 2
+const flightCameraPoint = new THREE.Vector3()
+const flightTargetPoint = new THREE.Vector3()
+const idleCamera = new THREE.Vector3()
+const idleTarget = new THREE.Vector3()
+
+function smootherStep(x) {
+  const clamped = THREE.MathUtils.clamp(x, 0, 1)
+  return clamped * clamped * clamped * (clamped * (clamped * 6 - 15) + 10)
 }
 
 function startFlight(viewName) {
   const view = VIEWS[viewName]
   if (!view) return
 
+  activeViewName = viewName
+
   if (viewName === 'map') {
     controls.enabled = false
+    controls.enableDamping = false
+
+    const startCam = camera.position.clone()
+    const startTarget = controls.target.clone()
+    const endCam = new THREE.Vector3(...view.camera)
+    const endTarget = new THREE.Vector3(...view.target)
+
+    const camPath = new THREE.CatmullRomCurve3(
+      [
+        startCam.clone(),
+        new THREE.Vector3(
+          THREE.MathUtils.lerp(startCam.x, 0, 0.7),
+          Math.max(startCam.y + 16, 24),
+          startCam.z + 18
+        ),
+        new THREE.Vector3(0, 20, -18),
+        new THREE.Vector3(0, -12, -106),
+        new THREE.Vector3(0, -76, -210),
+        new THREE.Vector3(0, -108, -246),
+        endCam.clone(),
+      ],
+      false,
+      'centripetal',
+      0.38
+    )
+
+    const targetPath = new THREE.CatmullRomCurve3(
+      [
+        startTarget.clone(),
+        new THREE.Vector3(0, 4, -14),
+        new THREE.Vector3(0, -16, -118),
+        new THREE.Vector3(0, -92, -300),
+        new THREE.Vector3(0, -130, -332),
+        endTarget.clone(),
+      ],
+      false,
+      'centripetal',
+      0.38
+    )
 
     flight = {
       type: 'map',
       startTime: performance.now(),
-      duration: 5600,
-      startCam: camera.position.clone(),
-      startTarget: controls.target.clone(),
-
-      highCam: new THREE.Vector3(0, 28, 46),
-      highTarget: new THREE.Vector3(0, 3, -18),
-
-      revealCam: new THREE.Vector3(0, -8, -150),
-      revealTarget: new THREE.Vector3(0, -150, -270),
-
-      endCam: new THREE.Vector3(...view.camera),
-      endTarget: new THREE.Vector3(...view.target),
+      duration: 6800,
+      camPath,
+      targetPath,
+      endCam,
+      endTarget,
     }
 
     return
@@ -690,6 +732,7 @@ function startFlight(viewName) {
 
   flight = null
   controls.enabled = true
+  controls.enableDamping = true
   desiredCameraPosition.set(...view.camera)
   desiredTarget.set(...view.target)
 }
@@ -728,7 +771,7 @@ function animate() {
   })
 
   if (planetMap?.world) {
-    planetMap.world.rotation.y += 0.0007
+    planetMap.world.rotation.y += 0.00048
   }
 
   clouds.rotation.y = t * 0.01
@@ -741,30 +784,46 @@ function animate() {
   if (flight) {
     const elapsed = (performance.now() - flight.startTime) / flight.duration
     const p = Math.min(elapsed, 1)
+    const eased = smootherStep(p)
 
-    if (p < 0.28) {
-      const localP = easeInOutCubic(p / 0.28)
-      camera.position.lerpVectors(flight.startCam, flight.highCam, localP)
-      controls.target.lerpVectors(flight.startTarget, flight.highTarget, localP)
-    } else if (p < 0.68) {
-      const localP = easeInOutCubic((p - 0.28) / 0.40)
-      camera.position.lerpVectors(flight.highCam, flight.revealCam, localP)
-      controls.target.lerpVectors(flight.highTarget, flight.revealTarget, localP)
-    } else {
-      const localP = easeInOutCubic((p - 0.68) / 0.32)
-      camera.position.lerpVectors(flight.revealCam, flight.endCam, localP)
-      controls.target.lerpVectors(flight.revealTarget, flight.endTarget, localP)
-    }
+    flight.camPath.getPointAt(eased, flightCameraPoint)
+    flight.targetPath.getPointAt(eased, flightTargetPoint)
+
+    const glideLift = Math.sin(eased * Math.PI) * 0.18
+
+    camera.position.copy(flightCameraPoint)
+    camera.position.y += glideLift
+
+    controls.target.copy(flightTargetPoint)
+    controls.target.y += glideLift * 0.3
 
     if (p >= 1) {
       desiredCameraPosition.copy(flight.endCam)
       desiredTarget.copy(flight.endTarget)
       controls.enabled = true
+      controls.enableDamping = true
       flight = null
     }
   } else {
-    camera.position.lerp(desiredCameraPosition, 0.03)
-    controls.target.lerp(desiredTarget, 0.05)
+    idleCamera.copy(desiredCameraPosition)
+    idleTarget.copy(desiredTarget)
+
+    if (activeViewName === 'map') {
+      const driftX = Math.sin(t * 0.16) * 0.32
+      const driftY = Math.sin(t * 0.21 + 0.8) * 0.26
+      const driftZ = Math.sin(t * 0.13) * 0.55
+
+      idleCamera.x += driftX
+      idleCamera.y += driftY
+      idleCamera.z += driftZ
+
+      idleTarget.x += driftX * 0.22
+      idleTarget.y += driftY * 0.45
+      idleTarget.z += driftZ * 0.12
+    }
+
+    camera.position.lerp(idleCamera, 0.028)
+    controls.target.lerp(idleTarget, 0.042)
   }
 
   controls.update()
