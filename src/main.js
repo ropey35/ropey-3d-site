@@ -8,15 +8,15 @@ const app = document.querySelector('#app')
 // Scene / camera / renderer
 // --------------------------------------------------
 const scene = new THREE.Scene()
-scene.fog = new THREE.Fog(0x081a2f, 60, 520)
+scene.fog = new THREE.Fog(0x081a2f, 60, 560)
 
 const camera = new THREE.PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
   0.1,
-  700
+  760
 )
-camera.position.set(0, 10.5, 24)
+camera.position.set(0, 12.8, 31)
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -31,9 +31,9 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 controls.enablePan = false
 controls.minDistance = 10
-controls.maxDistance = 260
+controls.maxDistance = 280
 controls.maxPolarAngle = Math.PI / 2.05
-controls.target.set(0, 2.8, 0)
+controls.target.set(0, 3.4, 0)
 
 // --------------------------------------------------
 // Lighting
@@ -57,7 +57,7 @@ function makeStarField(count, spread, size, opacity) {
 
   for (let i = 0; i < count; i++) {
     positions[i * 3 + 0] = (Math.random() - 0.5) * spread
-    positions[i * 3 + 1] = (Math.random() - 0.15) * spread * 0.65
+    positions[i * 3 + 1] = (Math.random() - 0.15) * spread * 0.68
     positions[i * 3 + 2] = (Math.random() - 0.5) * spread
   }
 
@@ -77,8 +77,8 @@ function makeStarField(count, spread, size, opacity) {
   return new THREE.Points(geometry, material)
 }
 
-const starsFar = makeStarField(1200, 320, 0.18, 0.95)
-const starsNear = makeStarField(450, 200, 0.28, 0.85)
+const starsFar = makeStarField(2200, 420, 0.18, 0.96)
+const starsNear = makeStarField(950, 280, 0.28, 0.88)
 
 scene.add(starsFar)
 scene.add(starsNear)
@@ -95,7 +95,7 @@ function makeDustField(count, spreadX, spreadY, spreadZ) {
     positions[i * 3 + 1] = (Math.random() - 0.25) * spreadY
     positions[i * 3 + 2] = (Math.random() - 0.5) * spreadZ
 
-    const isBlue = Math.random() > 0.45
+    const isBlue = Math.random() > 0.42
 
     if (isBlue) {
       colors[i * 3 + 0] = 0.55
@@ -103,8 +103,8 @@ function makeDustField(count, spreadX, spreadY, spreadZ) {
       colors[i * 3 + 2] = 1.0
     } else {
       colors[i * 3 + 0] = 1.0
-      colors[i * 3 + 1] = 0.88
-      colors[i * 3 + 2] = 0.45
+      colors[i * 3 + 1] = 0.9
+      colors[i * 3 + 2] = 0.48
     }
   }
 
@@ -113,10 +113,10 @@ function makeDustField(count, spreadX, spreadY, spreadZ) {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 
   const material = new THREE.PointsMaterial({
-    size: 0.22,
+    size: 0.24,
     vertexColors: true,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.92,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     sizeAttenuation: true,
@@ -125,8 +125,8 @@ function makeDustField(count, spreadX, spreadY, spreadZ) {
   return new THREE.Points(geometry, material)
 }
 
-const dustFieldA = makeDustField(220, 120, 70, 120)
-const dustFieldB = makeDustField(120, 70, 45, 70)
+const dustFieldA = makeDustField(360, 160, 90, 160)
+const dustFieldB = makeDustField(220, 110, 65, 120)
 
 scene.add(dustFieldA)
 scene.add(dustFieldB)
@@ -165,6 +165,20 @@ makeCloud(-20, 13, -22, 1.9)
 makeCloud(16, 10, -14, 1.3)
 makeCloud(7, 17, -34, 2.2)
 makeCloud(-10, 7, -40, 1.1)
+makeCloud(24, 16, -24, 1.35)
+makeCloud(-28, 18, -12, 1.1)
+makeCloud(30, 8, -44, 0.95)
+makeCloud(-34, 10, -30, 1.25)
+makeCloud(5, 21, -58, 1.5)
+makeCloud(-2, 15, 8, 0.9)
+makeCloud(38, 14, -34, 1.25)
+makeCloud(-42, 16, -26, 1.4)
+makeCloud(12, 22, -70, 1.1)
+makeCloud(-16, 20, -62, 1.25)
+makeCloud(40, 9, -16, 0.9)
+makeCloud(-38, 11, -8, 0.95)
+makeCloud(18, 6, -8, 0.8)
+makeCloud(-8, 24, -80, 1.3)
 
 // --------------------------------------------------
 // Custom cloud placeholders
@@ -216,11 +230,18 @@ makeCustomCloudPlaceholder(-8, 11, 8, 1.0)
 makeCustomCloudPlaceholder(10, 14, 2, 1.2)
 makeCustomCloudPlaceholder(24, 9, -10, 0.9)
 makeCustomCloudPlaceholder(-22, 15, -18, 1.1)
+makeCustomCloudPlaceholder(32, 13, -2, 0.85)
+makeCustomCloudPlaceholder(-30, 12, 2, 0.95)
+makeCustomCloudPlaceholder(42, 11, -18, 0.9)
+makeCustomCloudPlaceholder(-44, 14, -20, 1.05)
+makeCustomCloudPlaceholder(14, 19, -44, 0.82)
+makeCustomCloudPlaceholder(-12, 18, -50, 0.88)
 
 // --------------------------------------------------
 // Helpers
 // --------------------------------------------------
 const floatingGroups = []
+const orbitSparkleSystems = []
 
 function makeTree(parent, x, z, scale = 1, leafColor = 0x4e8d47) {
   const tree = new THREE.Group()
@@ -314,6 +335,62 @@ function makeMistCluster(parent, x, y, z, scale = 1, count = 4) {
   parent.add(mist)
 }
 
+function makeOrbitSparkles(
+  parent,
+  {
+    anchor = [0, 2, 0],
+    count = 10,
+    radiusMin = 0.3,
+    radiusMax = 1.1,
+    height = 0.28,
+    speed = 1,
+  } = {}
+) {
+  const systemGroup = new THREE.Group()
+  systemGroup.position.set(...anchor)
+  parent.add(systemGroup)
+
+  const sparkles = []
+
+  for (let i = 0; i < count; i++) {
+    const hueChoice = Math.random()
+    let color = 0x9fe7ff
+
+    if (hueChoice < 0.33) color = 0x9fe7ff
+    else if (hueChoice < 0.66) color = 0xffe98b
+    else color = 0xb8fff0
+
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.03 + Math.random() * 0.035, 10, 10),
+      new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.95,
+      })
+    )
+
+    systemGroup.add(mesh)
+
+    sparkles.push({
+      mesh,
+      angle: Math.random() * Math.PI * 2,
+      radius: THREE.MathUtils.lerp(radiusMin, radiusMax, Math.random()),
+      yBase: (Math.random() - 0.5) * height,
+      yAmp: 0.03 + Math.random() * 0.12,
+      speed: speed * (0.55 + Math.random() * 1.2),
+      zSquash: 0.7 + Math.random() * 0.45,
+      pulse: Math.random() * Math.PI * 2,
+      scaleBase: 0.7 + Math.random() * 0.85,
+    })
+  }
+
+  orbitSparkleSystems.push({
+    group: systemGroup,
+    sparkles,
+    phase: Math.random() * Math.PI * 2,
+  })
+}
+
 // --------------------------------------------------
 // Floating island placeholders
 // --------------------------------------------------
@@ -405,31 +482,157 @@ function makeIsland({
     island.add(pedestal)
   }
 
-  if (type === 'contact') {
-    makeTree(island, -1.25, -0.6, 0.9, 0x529a56)
-    makeTree(island, 1.0, -0.35, 0.82, 0x3b7f5f)
-
-    const portal = new THREE.Mesh(
-      new THREE.TorusGeometry(0.95, 0.18, 20, 64),
-      new THREE.MeshStandardMaterial({
-        color: 0x9fe7ff,
-        emissive: 0x9fe7ff,
-        emissiveIntensity: 0.24,
-      })
-    )
-    portal.position.set(0, 2.45, 0)
-    island.add(portal)
-
-    const portalBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.65, 0.55, 16),
-      new THREE.MeshStandardMaterial({ color: 0xbfd0df })
-    )
-    portalBase.position.set(0, 1.92, 0)
-    island.add(portalBase)
-  }
-
   scene.add(island)
   return island
+}
+
+function makeContactCloud({
+  position = [-30, 8, -32],
+  scale = 1.35,
+}) {
+  const group = new THREE.Group()
+  group.position.set(...position)
+  group.scale.setScalar(scale)
+  group.userData.baseY = position[1]
+  group.userData.baseRotY = 0
+  group.userData.floatSpeed = 0.62
+  group.userData.floatAmount = 0.18
+  floatingGroups.push(group)
+
+  const cloudMaterial = new THREE.MeshStandardMaterial({
+    color: 0xecfbff,
+    emissive: 0xd9f7ff,
+    emissiveIntensity: 0.05,
+    transparent: true,
+    opacity: 0.94,
+  })
+
+  const lobePositions = [
+    [-1.6, 1.25, 0.1, 1.05],
+    [-0.8, 1.48, 0.28, 1.2],
+    [0.1, 1.58, 0, 1.32],
+    [1.05, 1.42, 0.12, 1.1],
+    [1.8, 1.2, -0.05, 0.92],
+    [0.2, 1.08, 0.72, 0.96],
+    [-0.75, 1.12, 0.68, 0.84],
+  ]
+
+  lobePositions.forEach(([x, y, z, s]) => {
+    const lobe = new THREE.Mesh(
+      new THREE.SphereGeometry(s, 24, 24),
+      cloudMaterial
+    )
+    lobe.position.set(x, y, z)
+    group.add(lobe)
+  })
+
+  const underside = new THREE.Mesh(
+    new THREE.SphereGeometry(1.7, 24, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0xdff7ff,
+      transparent: true,
+      opacity: 0.3,
+    })
+  )
+  underside.position.set(0.05, 0.82, 0.1)
+  underside.scale.set(1.45, 0.48, 1.15)
+  group.add(underside)
+
+  const swirlMaterial = new THREE.MeshStandardMaterial({
+    color: 0xb9f7ff,
+    emissive: 0x9fe7ff,
+    emissiveIntensity: 0.16,
+    transparent: true,
+    opacity: 0.72,
+  })
+
+  const swirlA = new THREE.Mesh(
+    new THREE.TorusGeometry(1.15, 0.07, 16, 60),
+    swirlMaterial
+  )
+  swirlA.rotation.x = Math.PI / 2
+  swirlA.rotation.z = 0.25
+  swirlA.position.set(-0.18, 1.12, 0.18)
+  group.add(swirlA)
+
+  const swirlB = new THREE.Mesh(
+    new THREE.TorusGeometry(0.78, 0.055, 16, 60),
+    swirlMaterial
+  )
+  swirlB.rotation.x = Math.PI / 2
+  swirlB.rotation.z = -0.34
+  swirlB.position.set(0.34, 1.28, -0.12)
+  group.add(swirlB)
+
+  const portalBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.68, 0.95, 0.34, 20),
+    new THREE.MeshStandardMaterial({
+      color: 0xe9f4ff,
+      emissive: 0xcde9ff,
+      emissiveIntensity: 0.08,
+    })
+  )
+  portalBase.position.set(0, 1.7, 0)
+  group.add(portalBase)
+
+  const portal = new THREE.Mesh(
+    new THREE.TorusGeometry(0.92, 0.16, 20, 80),
+    new THREE.MeshStandardMaterial({
+      color: 0x9fe7ff,
+      emissive: 0x8ce8ff,
+      emissiveIntensity: 0.95,
+      transparent: true,
+      opacity: 0.96,
+    })
+  )
+  portal.position.set(0, 2.62, 0)
+  group.add(portal)
+
+  const portalCore = new THREE.Mesh(
+    new THREE.RingGeometry(0.34, 0.72, 48),
+    new THREE.MeshBasicMaterial({
+      color: 0xb8f8ff,
+      transparent: true,
+      opacity: 0.62,
+      side: THREE.DoubleSide,
+    })
+  )
+  portalCore.position.set(0, 2.62, 0.02)
+  group.add(portalCore)
+
+  const swirlC = new THREE.Mesh(
+    new THREE.TorusGeometry(0.46, 0.03, 12, 44),
+    new THREE.MeshBasicMaterial({
+      color: 0xe7ffff,
+      transparent: true,
+      opacity: 0.6,
+    })
+  )
+  swirlC.rotation.x = Math.PI / 2
+  swirlC.position.set(0, 2.62, 0.03)
+  group.add(swirlC)
+
+  const mist = new THREE.Group()
+  for (let i = 0; i < 8; i++) {
+    const puff = new THREE.Mesh(
+      new THREE.SphereGeometry(0.32 + Math.random() * 0.16, 14, 14),
+      new THREE.MeshStandardMaterial({
+        color: 0xdffcff,
+        transparent: true,
+        opacity: 0.12,
+      })
+    )
+    puff.position.set(
+      (Math.random() - 0.5) * 2.2,
+      1.58 + Math.random() * 0.35,
+      (Math.random() - 0.5) * 1.5
+    )
+    mist.add(puff)
+  }
+  group.add(mist)
+
+  scene.add(group)
+  return group
 }
 
 // --------------------------------------------------
@@ -493,7 +696,7 @@ function makePlanetMap({
   lagoon.position.set(-1.2, 0.42, 0.8)
   echoGarden.add(lagoon)
 
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 30; i++) {
     const angle = Math.random() * Math.PI * 2
     const radiusFromCenter = 0.8 + Math.random() * 5.1
     const x = Math.cos(angle) * radiusFromCenter
@@ -506,7 +709,7 @@ function makePlanetMap({
     }
   }
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 10; i++) {
     const hill = new THREE.Mesh(
       new THREE.ConeGeometry(0.45 + Math.random() * 0.45, 0.8 + Math.random() * 0.6, 10),
       new THREE.MeshStandardMaterial({ color: 0x397a50 })
@@ -555,12 +758,12 @@ function makePlanetMap({
   markerC.position.set(0.6, 0.95, 2.9)
   echoGarden.add(markerC)
 
-  makeMistCluster(echoGarden, -2.8, 0.9, -1.8, 1.8, 6)
-  makeMistCluster(echoGarden, 2.5, 0.9, 1.5, 1.5, 5)
-  makeMistCluster(echoGarden, 0.2, 1.15, -0.5, 2.0, 7)
-  makeMistCluster(echoGarden, -0.8, 0.95, 2.2, 1.6, 5)
+  makeMistCluster(echoGarden, -2.8, 0.9, -1.8, 1.8, 7)
+  makeMistCluster(echoGarden, 2.5, 0.9, 1.5, 1.5, 6)
+  makeMistCluster(echoGarden, 0.2, 1.15, -0.5, 2.0, 8)
+  makeMistCluster(echoGarden, -0.8, 0.95, 2.2, 1.6, 6)
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 12; i++) {
     const puff = new THREE.Mesh(
       new THREE.SphereGeometry(1.2 + Math.random() * 0.9, 16, 16),
       new THREE.MeshStandardMaterial({
@@ -588,6 +791,7 @@ function makePlanetMap({
 
   return {
     world,
+    echoGarden,
     topTarget: new THREE.Vector3(position[0], position[1] + radius + 0.6, position[2]),
   }
 }
@@ -595,7 +799,7 @@ function makePlanetMap({
 // --------------------------------------------------
 // Create scene placeholders
 // --------------------------------------------------
-makeIsland({
+const heroIsland = makeIsland({
   position: [0, 0, 0],
   scale: 1.7,
   topColor: 0x4b9f68,
@@ -605,7 +809,7 @@ makeIsland({
   type: 'hero',
 })
 
-makeIsland({
+const aboutIsland = makeIsland({
   position: [28, 4.5, -20],
   scale: 1.25,
   topColor: 0x5faa73,
@@ -614,13 +818,9 @@ makeIsland({
   type: 'about',
 })
 
-makeIsland({
+const contactCloud = makeContactCloud({
   position: [-30, 8, -32],
-  scale: 1.3,
-  topColor: 0x57aa7f,
-  bottomColor: 0x295f57,
-  accentColor: 0xc7e7f0,
-  type: 'contact',
+  scale: 1.36,
 })
 
 const MAP_CENTER = new THREE.Vector3(0, -188, -360)
@@ -632,24 +832,117 @@ const planetMap = makePlanetMap({
 })
 
 // --------------------------------------------------
+// Local sparkle swirls
+// --------------------------------------------------
+makeOrbitSparkles(heroIsland, {
+  anchor: [0.8, 2.35, -0.65],
+  count: 16,
+  radiusMin: 0.22,
+  radiusMax: 0.8,
+  height: 0.28,
+  speed: 1.12,
+})
+
+makeOrbitSparkles(heroIsland, {
+  anchor: [1.25, 2.05, 0.95],
+  count: 14,
+  radiusMin: 0.28,
+  radiusMax: 0.96,
+  height: 0.26,
+  speed: 0.94,
+})
+
+makeOrbitSparkles(heroIsland, {
+  anchor: [-0.45, 2.3, 0.25],
+  count: 13,
+  radiusMin: 0.35,
+  radiusMax: 1.15,
+  height: 0.34,
+  speed: 0.82,
+})
+
+makeOrbitSparkles(aboutIsland, {
+  anchor: [0, 2.25, -0.15],
+  count: 13,
+  radiusMin: 0.26,
+  radiusMax: 0.86,
+  height: 0.26,
+  speed: 0.98,
+})
+
+makeOrbitSparkles(aboutIsland, {
+  anchor: [-0.55, 2.05, 0.55],
+  count: 10,
+  radiusMin: 0.22,
+  radiusMax: 0.72,
+  height: 0.22,
+  speed: 0.9,
+})
+
+makeOrbitSparkles(contactCloud, {
+  anchor: [0, 2.65, 0],
+  count: 18,
+  radiusMin: 0.35,
+  radiusMax: 1.18,
+  height: 0.38,
+  speed: 1.2,
+})
+
+makeOrbitSparkles(contactCloud, {
+  anchor: [0, 1.7, 0.1],
+  count: 12,
+  radiusMin: 0.55,
+  radiusMax: 1.55,
+  height: 0.3,
+  speed: 0.82,
+})
+
+makeOrbitSparkles(contactCloud, {
+  anchor: [0.18, 2.18, -0.1],
+  count: 10,
+  radiusMin: 0.22,
+  radiusMax: 0.62,
+  height: 0.22,
+  speed: 1.35,
+})
+
+makeOrbitSparkles(planetMap.echoGarden, {
+  anchor: [0.4, 1.2, -0.2],
+  count: 16,
+  radiusMin: 1.1,
+  radiusMax: 3.1,
+  height: 0.42,
+  speed: 0.52,
+})
+
+makeOrbitSparkles(planetMap.echoGarden, {
+  anchor: [-1.4, 1.05, 0.85],
+  count: 12,
+  radiusMin: 0.7,
+  radiusMax: 1.9,
+  height: 0.32,
+  speed: 0.62,
+})
+
+// --------------------------------------------------
 // Camera views
 // --------------------------------------------------
 const VIEWS = {
   hero: {
-    camera: [0, 10.5, 24],
-    target: [0, 2.8, 0],
+    camera: [0, 12.8, 31],
+    target: [0, 3.4, 0],
   },
   about: {
-    camera: [29, 9, -7],
-    target: [28, 4.5, -20],
+    camera: [29.5, 10.3, -4.2],
+    target: [28, 5.0, -20],
   },
   contact: {
-    camera: [-30, 12, -16],
-    target: [-30, 8, -32],
+    camera: [-30, 12.15, -11.15],
+    target: [-30, 10.5, -32],
   },
   map: {
-    camera: [0, -121, -262],
-    target: [0, -136, -338],
+    camera: [0, -118, -246],
+    target: [0, -134, -338],
   },
 }
 
@@ -669,6 +962,59 @@ function smootherStep(x) {
   return clamped * clamped * clamped * (clamped * (clamped * 6 - 15) + 10)
 }
 
+function cinematicEase(x) {
+  return smootherStep(Math.pow(THREE.MathUtils.clamp(x, 0, 1), 1.22))
+}
+
+function buildDirectMapFlight(startCam, startTarget, endCam, endTarget) {
+  const distance = startCam.distanceTo(endCam)
+  const startForward = startTarget.clone().sub(startCam).normalize()
+
+  const lift = THREE.MathUtils.clamp(distance * 0.1, 11, 30)
+  const initialPush = THREE.MathUtils.clamp(distance * 0.12, 8, 18)
+
+  const camP1 = startCam.clone().add(startForward.clone().multiplyScalar(initialPush))
+  camP1.y += lift * 0.12
+
+  const camP2 = startCam.clone().lerp(endCam, 0.34)
+  camP2.y += lift * 0.56
+
+  const camP3 = startCam.clone().lerp(endCam, 0.7)
+  camP3.y += lift * 0.12
+
+  const camPath = new THREE.CatmullRomCurve3(
+    [startCam.clone(), camP1, camP2, camP3, endCam.clone()],
+    false,
+    'centripetal',
+    0.46
+  )
+
+  const targetP1 = startTarget.clone().add(startForward.clone().multiplyScalar(initialPush * 0.78))
+  targetP1.y += lift * 0.05
+
+  const targetP2 = startTarget.clone().lerp(endTarget, 0.42)
+  targetP2.y += lift * 0.04
+
+  const targetP3 = startTarget.clone().lerp(endTarget, 0.8)
+
+  const targetPath = new THREE.CatmullRomCurve3(
+    [startTarget.clone(), targetP1, targetP2, targetP3, endTarget.clone()],
+    false,
+    'centripetal',
+    0.46
+  )
+
+  const duration = THREE.MathUtils.clamp(distance * 17.5, 5200, 7800)
+
+  return {
+    camPath,
+    targetPath,
+    duration,
+    endCam: endCam.clone(),
+    endTarget: endTarget.clone(),
+  }
+}
+
 function startFlight(viewName) {
   const view = VIEWS[viewName]
   if (!view) return
@@ -684,47 +1030,12 @@ function startFlight(viewName) {
     const endCam = new THREE.Vector3(...view.camera)
     const endTarget = new THREE.Vector3(...view.target)
 
-    const camPath = new THREE.CatmullRomCurve3(
-      [
-        startCam.clone(),
-        new THREE.Vector3(
-          THREE.MathUtils.lerp(startCam.x, 0, 0.7),
-          Math.max(startCam.y + 16, 24),
-          startCam.z + 18
-        ),
-        new THREE.Vector3(0, 20, -18),
-        new THREE.Vector3(0, -12, -106),
-        new THREE.Vector3(0, -76, -210),
-        new THREE.Vector3(0, -108, -246),
-        endCam.clone(),
-      ],
-      false,
-      'centripetal',
-      0.38
-    )
-
-    const targetPath = new THREE.CatmullRomCurve3(
-      [
-        startTarget.clone(),
-        new THREE.Vector3(0, 4, -14),
-        new THREE.Vector3(0, -16, -118),
-        new THREE.Vector3(0, -92, -300),
-        new THREE.Vector3(0, -130, -332),
-        endTarget.clone(),
-      ],
-      false,
-      'centripetal',
-      0.38
-    )
+    const mapFlight = buildDirectMapFlight(startCam, startTarget, endCam, endTarget)
 
     flight = {
       type: 'map',
       startTime: performance.now(),
-      duration: 6800,
-      camPath,
-      targetPath,
-      endCam,
-      endTarget,
+      ...mapFlight,
     }
 
     return
@@ -770,32 +1081,50 @@ function animate() {
     cloud.scale.setScalar(pulse)
   })
 
+  orbitSparkleSystems.forEach((system, systemIndex) => {
+    const systemTime = t + system.phase + systemIndex * 0.37
+
+    system.sparkles.forEach((sparkle, i) => {
+      const angle = systemTime * sparkle.speed + sparkle.angle
+      const x = Math.cos(angle) * sparkle.radius
+      const z = Math.sin(angle) * sparkle.radius * sparkle.zSquash
+      const y = sparkle.yBase + Math.sin(angle * 1.8 + sparkle.pulse) * sparkle.yAmp
+
+      sparkle.mesh.position.set(x, y, z)
+
+      const pulse = 0.72 + Math.sin(systemTime * 3 + sparkle.pulse + i) * 0.28
+      const scale = sparkle.scaleBase * pulse
+      sparkle.mesh.scale.setScalar(scale)
+      sparkle.mesh.material.opacity = 0.55 + pulse * 0.45
+    })
+  })
+
   if (planetMap?.world) {
     planetMap.world.rotation.y += 0.00048
   }
 
-  clouds.rotation.y = t * 0.01
-  starsFar.rotation.y = t * 0.002
-  starsNear.rotation.y = -t * 0.003
-  dustFieldA.rotation.y = t * 0.012
-  dustFieldB.rotation.y = -t * 0.016
+  clouds.rotation.y = t * 0.012
+  starsFar.rotation.y = t * 0.0022
+  starsNear.rotation.y = -t * 0.0033
+  dustFieldA.rotation.y = t * 0.013
+  dustFieldB.rotation.y = -t * 0.017
   dustFieldB.position.y = Math.sin(t * 0.7) * 1.2
 
   if (flight) {
     const elapsed = (performance.now() - flight.startTime) / flight.duration
     const p = Math.min(elapsed, 1)
-    const eased = smootherStep(p)
+    const eased = cinematicEase(p)
 
     flight.camPath.getPointAt(eased, flightCameraPoint)
     flight.targetPath.getPointAt(eased, flightTargetPoint)
 
-    const glideLift = Math.sin(eased * Math.PI) * 0.18
+    const glideLift = Math.sin(eased * Math.PI) * 0.14
 
     camera.position.copy(flightCameraPoint)
     camera.position.y += glideLift
 
     controls.target.copy(flightTargetPoint)
-    controls.target.y += glideLift * 0.3
+    controls.target.y += glideLift * 0.18
 
     if (p >= 1) {
       desiredCameraPosition.copy(flight.endCam)
@@ -807,6 +1136,25 @@ function animate() {
   } else {
     idleCamera.copy(desiredCameraPosition)
     idleTarget.copy(desiredTarget)
+
+    if (activeViewName === 'hero') {
+      idleCamera.y += Math.sin(t * 0.2) * 0.12
+      idleCamera.z += Math.sin(t * 0.14) * 0.35
+      idleTarget.y += Math.sin(t * 0.18 + 0.7) * 0.08
+    }
+
+    if (activeViewName === 'about') {
+      idleCamera.x += Math.sin(t * 0.16) * 0.2
+      idleCamera.y += Math.sin(t * 0.22) * 0.1
+      idleCamera.z += Math.sin(t * 0.14) * 0.28
+    }
+
+    if (activeViewName === 'contact') {
+      idleCamera.x += Math.sin(t * 0.15) * 0.24
+      idleCamera.y += Math.sin(t * 0.21 + 0.8) * 0.12
+      idleCamera.z += Math.sin(t * 0.13) * 0.32
+      idleTarget.y += Math.sin(t * 0.24) * 0.08
+    }
 
     if (activeViewName === 'map') {
       const driftX = Math.sin(t * 0.16) * 0.32
