@@ -1,6 +1,7 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 
 const app = document.querySelector('#app')
 
@@ -34,6 +35,50 @@ controls.minDistance = 10
 controls.maxDistance = 280
 controls.maxPolarAngle = Math.PI / 2.05
 controls.target.set(0, 3.4, 0)
+
+const gltfLoader = new GLTFLoader()
+
+function loadGLBModel(
+  url,
+  {
+    parent = scene,
+    position = [0, 0, 0],
+    rotation = [0, 0, 0],
+    scale = [1, 1, 1],
+    onLoad = null,
+  } = {}
+) {
+  gltfLoader.load(
+    url,
+    (gltf) => {
+      const model = gltf.scene
+
+      model.position.set(...position)
+      model.rotation.set(...rotation)
+      model.scale.set(...scale)
+
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.frustumCulled = false
+          child.castShadow = false
+          child.receiveShadow = false
+        }
+      })
+
+      parent.add(model)
+
+      if (typeof onLoad === 'function') {
+        onLoad(model)
+      }
+
+      console.log('GLB loaded successfully:', url, model)
+    },
+    undefined,
+    (error) => {
+      console.error('Error loading GLB:', url, error)
+    }
+  )
+}
 
 // --------------------------------------------------
 // Lighting
@@ -146,9 +191,18 @@ function makeCloud(x, y, z, scale = 1) {
     opacity: 0.82,
   })
 
-  const a = new THREE.Mesh(new THREE.SphereGeometry(0.9 * scale, 20, 20), material)
-  const b = new THREE.Mesh(new THREE.SphereGeometry(0.62 * scale, 20, 20), material)
-  const c = new THREE.Mesh(new THREE.SphereGeometry(0.55 * scale, 20, 20), material)
+  const a = new THREE.Mesh(
+    new THREE.SphereGeometry(0.9 * scale, 20, 20),
+    material
+  )
+  const b = new THREE.Mesh(
+    new THREE.SphereGeometry(0.62 * scale, 20, 20),
+    material
+  )
+  const c = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55 * scale, 20, 20),
+    material
+  )
 
   a.position.set(0, 0, 0)
   b.position.set(0.72 * scale, 0.08 * scale, 0.08 * scale)
@@ -202,9 +256,18 @@ function makeCustomCloudPlaceholder(x, y, z, scale = 1) {
     opacity: 0.22,
   })
 
-  const a = new THREE.Mesh(new THREE.SphereGeometry(0.8 * scale, 18, 18), blobMaterial)
-  const b = new THREE.Mesh(new THREE.SphereGeometry(0.55 * scale, 18, 18), blobMaterial)
-  const c = new THREE.Mesh(new THREE.SphereGeometry(0.48 * scale, 18, 18), blobMaterial)
+  const a = new THREE.Mesh(
+    new THREE.SphereGeometry(0.8 * scale, 18, 18),
+    blobMaterial
+  )
+  const b = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55 * scale, 18, 18),
+    blobMaterial
+  )
+  const c = new THREE.Mesh(
+    new THREE.SphereGeometry(0.48 * scale, 18, 18),
+    blobMaterial
+  )
 
   a.position.set(0, 0, 0)
   b.position.set(0.58 * scale, 0.06 * scale, 0)
@@ -242,6 +305,45 @@ makeCustomCloudPlaceholder(-12, 18, -50, 0.88)
 // --------------------------------------------------
 const floatingGroups = []
 const orbitSparkleSystems = []
+
+function configureBrightTitleMaterial(material) {
+  if (!material) return material
+
+  const mat = material.clone()
+
+  if ('emissive' in mat && mat.emissive) {
+    mat.emissive = new THREE.Color(0xaeefff)
+    mat.emissiveIntensity = 0.18
+  }
+
+  if ('roughness' in mat && typeof mat.roughness === 'number') {
+    mat.roughness = Math.min(mat.roughness, 0.55)
+  }
+
+  if ('metalness' in mat && typeof mat.metalness === 'number') {
+    mat.metalness = Math.min(mat.metalness, 0.12)
+  }
+
+  mat.toneMapped = true
+  mat.needsUpdate = true
+
+  return mat
+}
+
+function brightenTitleModel(root) {
+  root.traverse((child) => {
+    if (!child.isMesh) return
+
+    child.frustumCulled = false
+    child.renderOrder = 10
+
+    if (Array.isArray(child.material)) {
+      child.material = child.material.map(configureBrightTitleMaterial)
+    } else {
+      child.material = configureBrightTitleMaterial(child.material)
+    }
+  })
+}
 
 function makeTree(parent, x, z, scale = 1, leafColor = 0x4e8d47) {
   const tree = new THREE.Group()
@@ -486,155 +588,6 @@ function makeIsland({
   return island
 }
 
-function makeContactCloud({
-  position = [-30, 8, -32],
-  scale = 1.35,
-}) {
-  const group = new THREE.Group()
-  group.position.set(...position)
-  group.scale.setScalar(scale)
-  group.userData.baseY = position[1]
-  group.userData.baseRotY = 0
-  group.userData.floatSpeed = 0.62
-  group.userData.floatAmount = 0.18
-  floatingGroups.push(group)
-
-  const cloudMaterial = new THREE.MeshStandardMaterial({
-    color: 0xecfbff,
-    emissive: 0xd9f7ff,
-    emissiveIntensity: 0.05,
-    transparent: true,
-    opacity: 0.94,
-  })
-
-  const lobePositions = [
-    [-1.6, 1.25, 0.1, 1.05],
-    [-0.8, 1.48, 0.28, 1.2],
-    [0.1, 1.58, 0, 1.32],
-    [1.05, 1.42, 0.12, 1.1],
-    [1.8, 1.2, -0.05, 0.92],
-    [0.2, 1.08, 0.72, 0.96],
-    [-0.75, 1.12, 0.68, 0.84],
-  ]
-
-  lobePositions.forEach(([x, y, z, s]) => {
-    const lobe = new THREE.Mesh(
-      new THREE.SphereGeometry(s, 24, 24),
-      cloudMaterial
-    )
-    lobe.position.set(x, y, z)
-    group.add(lobe)
-  })
-
-  const underside = new THREE.Mesh(
-    new THREE.SphereGeometry(1.7, 24, 24),
-    new THREE.MeshStandardMaterial({
-      color: 0xdff7ff,
-      transparent: true,
-      opacity: 0.3,
-    })
-  )
-  underside.position.set(0.05, 0.82, 0.1)
-  underside.scale.set(1.45, 0.48, 1.15)
-  group.add(underside)
-
-  const swirlMaterial = new THREE.MeshStandardMaterial({
-    color: 0xb9f7ff,
-    emissive: 0x9fe7ff,
-    emissiveIntensity: 0.16,
-    transparent: true,
-    opacity: 0.72,
-  })
-
-  const swirlA = new THREE.Mesh(
-    new THREE.TorusGeometry(1.15, 0.07, 16, 60),
-    swirlMaterial
-  )
-  swirlA.rotation.x = Math.PI / 2
-  swirlA.rotation.z = 0.25
-  swirlA.position.set(-0.18, 1.12, 0.18)
-  group.add(swirlA)
-
-  const swirlB = new THREE.Mesh(
-    new THREE.TorusGeometry(0.78, 0.055, 16, 60),
-    swirlMaterial
-  )
-  swirlB.rotation.x = Math.PI / 2
-  swirlB.rotation.z = -0.34
-  swirlB.position.set(0.34, 1.28, -0.12)
-  group.add(swirlB)
-
-  const portalBase = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.68, 0.95, 0.34, 20),
-    new THREE.MeshStandardMaterial({
-      color: 0xe9f4ff,
-      emissive: 0xcde9ff,
-      emissiveIntensity: 0.08,
-    })
-  )
-  portalBase.position.set(0, 1.7, 0)
-  group.add(portalBase)
-
-  const portal = new THREE.Mesh(
-    new THREE.TorusGeometry(0.92, 0.16, 20, 80),
-    new THREE.MeshStandardMaterial({
-      color: 0x9fe7ff,
-      emissive: 0x8ce8ff,
-      emissiveIntensity: 0.95,
-      transparent: true,
-      opacity: 0.96,
-    })
-  )
-  portal.position.set(0, 2.62, 0)
-  group.add(portal)
-
-  const portalCore = new THREE.Mesh(
-    new THREE.RingGeometry(0.34, 0.72, 48),
-    new THREE.MeshBasicMaterial({
-      color: 0xb8f8ff,
-      transparent: true,
-      opacity: 0.62,
-      side: THREE.DoubleSide,
-    })
-  )
-  portalCore.position.set(0, 2.62, 0.02)
-  group.add(portalCore)
-
-  const swirlC = new THREE.Mesh(
-    new THREE.TorusGeometry(0.46, 0.03, 12, 44),
-    new THREE.MeshBasicMaterial({
-      color: 0xe7ffff,
-      transparent: true,
-      opacity: 0.6,
-    })
-  )
-  swirlC.rotation.x = Math.PI / 2
-  swirlC.position.set(0, 2.62, 0.03)
-  group.add(swirlC)
-
-  const mist = new THREE.Group()
-  for (let i = 0; i < 8; i++) {
-    const puff = new THREE.Mesh(
-      new THREE.SphereGeometry(0.32 + Math.random() * 0.16, 14, 14),
-      new THREE.MeshStandardMaterial({
-        color: 0xdffcff,
-        transparent: true,
-        opacity: 0.12,
-      })
-    )
-    puff.position.set(
-      (Math.random() - 0.5) * 2.2,
-      1.58 + Math.random() * 0.35,
-      (Math.random() - 0.5) * 1.5
-    )
-    mist.add(puff)
-  }
-  group.add(mist)
-
-  scene.add(group)
-  return group
-}
-
 // --------------------------------------------------
 // Planet map placeholder
 // --------------------------------------------------
@@ -797,16 +750,41 @@ function makePlanetMap({
 }
 
 // --------------------------------------------------
-// Create scene placeholders
+// Create scene placeholders / models
 // --------------------------------------------------
-const heroIsland = makeIsland({
+const heroIsland = new THREE.Group()
+heroIsland.position.set(0, 0, 0)
+heroIsland.userData.baseY = 0
+heroIsland.userData.baseRotY = 0
+heroIsland.userData.floatSpeed = 0.78
+heroIsland.userData.floatAmount = 0.16
+floatingGroups.push(heroIsland)
+scene.add(heroIsland)
+
+loadGLBModel('/models/hero-island-002.glb', {
+  parent: heroIsland,
   position: [0, 0, 0],
-  scale: 1.7,
-  topColor: 0x4b9f68,
-  bottomColor: 0x295844,
-  accentColor: 0xe0d1aa,
-  towerRoof: 0xb56582,
-  type: 'hero',
+  rotation: [0, 0, 0],
+  scale: [4, 4, 4],
+})
+
+const heroTitle = new THREE.Group()
+heroTitle.position.set(0, 13.2, 8)
+heroTitle.userData.floatPhase = Math.random() * Math.PI * 2
+scene.add(heroTitle)
+
+const titleGlowLight = new THREE.PointLight(0xd9faff, 1.6, 22, 2)
+titleGlowLight.position.set(0, 0.5, 6.4)
+heroTitle.add(titleGlowLight)
+
+loadGLBModel('/models/header-logo-01.glb', {
+  parent: heroTitle,
+  position: [0, 0, 0],
+  rotation: [0, 0, 0],
+  scale: [3, 3, 3],
+  onLoad: (model) => {
+    brightenTitleModel(model)
+  },
 })
 
 const aboutIsland = makeIsland({
@@ -818,9 +796,20 @@ const aboutIsland = makeIsland({
   type: 'about',
 })
 
-const contactCloud = makeContactCloud({
-  position: [-30, 8, -32],
-  scale: 1.36,
+const contactCloud = new THREE.Group()
+contactCloud.position.set(-30, 8, -32)
+contactCloud.userData.baseY = 8
+contactCloud.userData.baseRotY = 0
+contactCloud.userData.floatSpeed = 0.62
+contactCloud.userData.floatAmount = 0.18
+floatingGroups.push(contactCloud)
+scene.add(contactCloud)
+
+loadGLBModel('/models/contact-cloud-01.glb', {
+  parent: contactCloud,
+  position: [0, 0, 0],
+  rotation: [0, 0, 0],
+  scale: [4, 4, 4],
 })
 
 const MAP_CENTER = new THREE.Vector3(0, -188, -360)
@@ -956,6 +945,10 @@ const flightCameraPoint = new THREE.Vector3()
 const flightTargetPoint = new THREE.Vector3()
 const idleCamera = new THREE.Vector3()
 const idleTarget = new THREE.Vector3()
+const titleAnchor = new THREE.Vector3()
+const titleForward = new THREE.Vector3()
+const titleRight = new THREE.Vector3()
+const titleUp = new THREE.Vector3()
 
 function smootherStep(x) {
   const clamped = THREE.MathUtils.clamp(x, 0, 1)
@@ -969,42 +962,53 @@ function cinematicEase(x) {
 function buildDirectMapFlight(startCam, startTarget, endCam, endTarget) {
   const distance = startCam.distanceTo(endCam)
   const startForward = startTarget.clone().sub(startCam).normalize()
+  const directDir = endCam.clone().sub(startCam).normalize()
 
-  const lift = THREE.MathUtils.clamp(distance * 0.1, 11, 30)
-  const initialPush = THREE.MathUtils.clamp(distance * 0.12, 8, 18)
+  const islandClusterCenter = new THREE.Vector3(0, 6.2, -18)
+  const openingDir = startForward.clone().lerp(directDir, 0.84).normalize()
 
-  const camP1 = startCam.clone().add(startForward.clone().multiplyScalar(initialPush))
-  camP1.y += lift * 0.12
+  const lift = THREE.MathUtils.clamp(distance * 0.082, 8, 22)
+  const initialPush = THREE.MathUtils.clamp(distance * 0.08, 6, 12)
 
-  const camP2 = startCam.clone().lerp(endCam, 0.34)
-  camP2.y += lift * 0.56
+  const camP1 = startCam.clone().add(openingDir.clone().multiplyScalar(initialPush))
+  camP1.y += lift * 0.06
 
-  const camP3 = startCam.clone().lerp(endCam, 0.7)
-  camP3.y += lift * 0.12
+  const camP2 = startCam.clone().lerp(endCam, 0.3)
+  camP2.y += lift * 0.34
+
+  const camP3 = startCam.clone().lerp(endCam, 0.62)
+  camP3.y += lift * 0.14
+
+  const camP4 = startCam.clone().lerp(endCam, 0.86)
+  camP4.y += lift * 0.03
 
   const camPath = new THREE.CatmullRomCurve3(
-    [startCam.clone(), camP1, camP2, camP3, endCam.clone()],
+    [startCam.clone(), camP1, camP2, camP3, camP4, endCam.clone()],
     false,
     'centripetal',
-    0.46
+    0.5
   )
 
-  const targetP1 = startTarget.clone().add(startForward.clone().multiplyScalar(initialPush * 0.78))
-  targetP1.y += lift * 0.05
-
-  const targetP2 = startTarget.clone().lerp(endTarget, 0.42)
-  targetP2.y += lift * 0.04
-
-  const targetP3 = startTarget.clone().lerp(endTarget, 0.8)
+  const targetP1 = startTarget.clone().lerp(islandClusterCenter, 0.9)
+  const targetP2 = islandClusterCenter.clone().lerp(endTarget, 0.18)
+  const targetP3 = islandClusterCenter.clone().lerp(endTarget, 0.5)
+  const targetP4 = islandClusterCenter.clone().lerp(endTarget, 0.84)
 
   const targetPath = new THREE.CatmullRomCurve3(
-    [startTarget.clone(), targetP1, targetP2, targetP3, endTarget.clone()],
+    [
+      startTarget.clone(),
+      targetP1,
+      targetP2,
+      targetP3,
+      targetP4,
+      endTarget.clone(),
+    ],
     false,
     'centripetal',
-    0.46
+    0.5
   )
 
-  const duration = THREE.MathUtils.clamp(distance * 17.5, 5200, 7800)
+  const duration = THREE.MathUtils.clamp(distance * 18.5, 5600, 8200)
 
   return {
     camPath,
@@ -1175,6 +1179,34 @@ function animate() {
   }
 
   controls.update()
+
+  if (heroTitle) {
+    titleForward.subVectors(controls.target, camera.position).normalize()
+    titleRight.crossVectors(titleForward, camera.up).normalize()
+    titleUp.crossVectors(titleRight, titleForward).normalize()
+
+    const titleDistance = activeViewName === 'map' ? 19 : 15.5
+    const titleLift = activeViewName === 'map' ? 6.4 : 4.8
+
+    titleAnchor.copy(camera.position)
+    titleAnchor.addScaledVector(titleForward, titleDistance)
+    titleAnchor.addScaledVector(titleUp, titleLift)
+
+    titleAnchor.x += Math.sin(t * 0.22) * 0.12
+    titleAnchor.y += Math.sin(t * 0.42 + 1.3) * 0.08
+    titleAnchor.z += Math.cos(t * 0.18) * 0.1
+
+    heroTitle.position.lerp(titleAnchor, flight ? 0.12 : 0.09)
+
+    const titlePulse = 1 + Math.sin(t * 0.9 + heroTitle.userData.floatPhase) * 0.018
+    heroTitle.scale.setScalar(titlePulse)
+
+    heroTitle.lookAt(camera.position)
+
+    titleGlowLight.intensity =
+      1.6 + Math.sin(t * 1.4 + heroTitle.userData.floatPhase) * 0.12
+  }
+
   renderer.render(scene, camera)
 }
 
