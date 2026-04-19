@@ -930,8 +930,8 @@ const VIEWS = {
     target: [-30, 10.5, -32],
   },
   map: {
-    camera: [0, -118, -246],
-    target: [0, -134, -338],
+    camera: [0, -110, -294],
+    target: [0, -130, -360],
   },
 }
 
@@ -949,6 +949,8 @@ const titleAnchor = new THREE.Vector3()
 const titleForward = new THREE.Vector3()
 const titleRight = new THREE.Vector3()
 const titleUp = new THREE.Vector3()
+const settleCameraPoint = new THREE.Vector3()
+const settleTargetPoint = new THREE.Vector3()
 
 function smootherStep(x) {
   const clamped = THREE.MathUtils.clamp(x, 0, 1)
@@ -959,12 +961,10 @@ function cinematicEase(x) {
   return smootherStep(Math.pow(THREE.MathUtils.clamp(x, 0, 1), 1.22))
 }
 
-function buildDirectMapFlight(startCam, startTarget, endCam, endTarget) {
+function buildIslandToMapFlight(startCam, startTarget, endCam, endTarget) {
   const distance = startCam.distanceTo(endCam)
   const startForward = startTarget.clone().sub(startCam).normalize()
   const directDir = endCam.clone().sub(startCam).normalize()
-
-  const islandClusterCenter = new THREE.Vector3(0, 6.2, -18)
   const openingDir = startForward.clone().lerp(directDir, 0.84).normalize()
 
   const lift = THREE.MathUtils.clamp(distance * 0.082, 8, 22)
@@ -979,7 +979,7 @@ function buildDirectMapFlight(startCam, startTarget, endCam, endTarget) {
   const camP3 = startCam.clone().lerp(endCam, 0.62)
   camP3.y += lift * 0.14
 
-  const camP4 = startCam.clone().lerp(endCam, 0.86)
+  const camP4 = startCam.clone().lerp(endCam, 0.9)
   camP4.y += lift * 0.03
 
   const camPath = new THREE.CatmullRomCurve3(
@@ -989,18 +989,18 @@ function buildDirectMapFlight(startCam, startTarget, endCam, endTarget) {
     0.5
   )
 
-  const targetP1 = startTarget.clone().lerp(islandClusterCenter, 0.9)
-  const targetP2 = islandClusterCenter.clone().lerp(endTarget, 0.18)
-  const targetP3 = islandClusterCenter.clone().lerp(endTarget, 0.5)
-  const targetP4 = islandClusterCenter.clone().lerp(endTarget, 0.84)
+  const targetLead1 = startTarget.clone().add(startForward.clone().multiplyScalar(10))
+  const targetLead2 = startTarget.clone().lerp(endTarget, 0.26)
+  const targetLead3 = startTarget.clone().lerp(endTarget, 0.58)
+  const targetLead4 = startTarget.clone().lerp(endTarget, 0.88)
 
   const targetPath = new THREE.CatmullRomCurve3(
     [
       startTarget.clone(),
-      targetP1,
-      targetP2,
-      targetP3,
-      targetP4,
+      targetLead1,
+      targetLead2,
+      targetLead3,
+      targetLead4,
       endTarget.clone(),
     ],
     false,
@@ -1019,29 +1019,102 @@ function buildDirectMapFlight(startCam, startTarget, endCam, endTarget) {
   }
 }
 
+function buildMapToIslandFlight(startCam, startTarget, endCam, endTarget) {
+  const distance = startCam.distanceTo(endCam)
+  const islandClusterCenter = new THREE.Vector3(0, 6.2, -18)
+
+  const climb = THREE.MathUtils.clamp(distance * 0.1, 15, 26)
+  const launchTowardWorld = islandClusterCenter.clone().sub(startCam).normalize()
+  const finalApproachDir = endCam.clone().sub(endTarget).normalize()
+
+  const camP1 = startCam.clone().add(launchTowardWorld.clone().multiplyScalar(7.5))
+  camP1.y += climb * 0.72
+  camP1.z += 5
+
+  const camP2 = startCam.clone().lerp(endCam, 0.5)
+  camP2.y += climb * 0.74
+
+  const camP3 = endCam.clone().add(finalApproachDir.clone().multiplyScalar(2.2))
+  camP3.y += 0.35
+
+  const camPath = new THREE.CatmullRomCurve3(
+    [startCam.clone(), camP1, camP2, camP3, endCam.clone()],
+    false,
+    'centripetal',
+    0.5
+  )
+
+  const targetP1 = startTarget.clone().lerp(endTarget, 0.42)
+  const targetP2 = startTarget.clone().lerp(endTarget, 0.76)
+  const targetP3 = endTarget.clone()
+
+  const targetPath = new THREE.CatmullRomCurve3(
+    [
+      startTarget.clone(),
+      targetP1,
+      targetP2,
+      targetP3,
+      endTarget.clone(),
+    ],
+    false,
+    'centripetal',
+    0.5
+  )
+
+  const duration = THREE.MathUtils.clamp(distance * 19, 5900, 7800)
+
+  // Start the final settle later so the handoff is subtle.
+  const settleStart = 0.9
+
+  const settleCamStart = camPath.getPointAt(settleStart, new THREE.Vector3())
+  const settleTargetStart = targetPath.getPointAt(settleStart, new THREE.Vector3())
+
+  return {
+    camPath,
+    targetPath,
+    duration,
+    endCam: endCam.clone(),
+    endTarget: endTarget.clone(),
+    settleStart,
+    settleCamStart,
+    settleTargetStart,
+  }
+}
+
+function beginFlight(builder, endView, type, destinationName) {
+  controls.enabled = false
+  controls.enableDamping = false
+
+  const startCam = camera.position.clone()
+  const startTarget = controls.target.clone()
+  const endCam = new THREE.Vector3(...endView.camera)
+  const endTarget = new THREE.Vector3(...endView.target)
+
+  flight = {
+    type,
+    destinationName,
+    startTime: performance.now(),
+    ...builder(startCam, startTarget, endCam, endTarget),
+  }
+}
+
 function startFlight(viewName) {
   const view = VIEWS[viewName]
   if (!view) return
 
+  if (!flight && viewName === activeViewName) return
+  if (flight && flight.destinationName === viewName) return
+
+  const previousViewName = activeViewName
   activeViewName = viewName
 
   if (viewName === 'map') {
-    controls.enabled = false
-    controls.enableDamping = false
+    beginFlight(buildIslandToMapFlight, view, 'to-map', viewName)
+    return
+  }
 
-    const startCam = camera.position.clone()
-    const startTarget = controls.target.clone()
-    const endCam = new THREE.Vector3(...view.camera)
-    const endTarget = new THREE.Vector3(...view.target)
-
-    const mapFlight = buildDirectMapFlight(startCam, startTarget, endCam, endTarget)
-
-    flight = {
-      type: 'map',
-      startTime: performance.now(),
-      ...mapFlight,
-    }
-
+  if (previousViewName === 'map') {
+    beginFlight(buildMapToIslandFlight, view, 'from-map', viewName)
     return
   }
 
@@ -1114,11 +1187,29 @@ function animate() {
   dustFieldB.rotation.y = -t * 0.017
   dustFieldB.position.y = Math.sin(t * 0.7) * 1.2
 
-  if (flight) {
-    const elapsed = (performance.now() - flight.startTime) / flight.duration
-    const p = Math.min(elapsed, 1)
-    const eased = cinematicEase(p)
+ if (flight) {
+  const elapsed = (performance.now() - flight.startTime) / flight.duration
+  const p = Math.min(elapsed, 1)
+  const eased = cinematicEase(p)
 
+  if (flight.type === 'from-map') {
+    if (eased < flight.settleStart) {
+      flight.camPath.getPointAt(eased, flightCameraPoint)
+      flight.targetPath.getPointAt(eased, flightTargetPoint)
+
+      camera.position.copy(flightCameraPoint)
+      controls.target.copy(flightTargetPoint)
+    } else {
+      const settleRaw =
+        (eased - flight.settleStart) / (1 - flight.settleStart)
+
+      // Pure ease-out so the motion dies down instead of launching.
+      const settleT = 1 - Math.pow(1 - THREE.MathUtils.clamp(settleRaw, 0, 1), 3)
+
+      camera.position.lerpVectors(flight.settleCamStart, flight.endCam, settleT)
+      controls.target.lerpVectors(flight.settleTargetStart, flight.endTarget, settleT)
+    }
+  } else {
     flight.camPath.getPointAt(eased, flightCameraPoint)
     flight.targetPath.getPointAt(eased, flightTargetPoint)
 
@@ -1129,83 +1220,81 @@ function animate() {
 
     controls.target.copy(flightTargetPoint)
     controls.target.y += glideLift * 0.18
-
-    if (p >= 1) {
-      desiredCameraPosition.copy(flight.endCam)
-      desiredTarget.copy(flight.endTarget)
-      controls.enabled = true
-      controls.enableDamping = true
-      flight = null
-    }
-  } else {
-    idleCamera.copy(desiredCameraPosition)
-    idleTarget.copy(desiredTarget)
-
-    if (activeViewName === 'hero') {
-      idleCamera.y += Math.sin(t * 0.2) * 0.12
-      idleCamera.z += Math.sin(t * 0.14) * 0.35
-      idleTarget.y += Math.sin(t * 0.18 + 0.7) * 0.08
-    }
-
-    if (activeViewName === 'about') {
-      idleCamera.x += Math.sin(t * 0.16) * 0.2
-      idleCamera.y += Math.sin(t * 0.22) * 0.1
-      idleCamera.z += Math.sin(t * 0.14) * 0.28
-    }
-
-    if (activeViewName === 'contact') {
-      idleCamera.x += Math.sin(t * 0.15) * 0.24
-      idleCamera.y += Math.sin(t * 0.21 + 0.8) * 0.12
-      idleCamera.z += Math.sin(t * 0.13) * 0.32
-      idleTarget.y += Math.sin(t * 0.24) * 0.08
-    }
-
-    if (activeViewName === 'map') {
-      const driftX = Math.sin(t * 0.16) * 0.32
-      const driftY = Math.sin(t * 0.21 + 0.8) * 0.26
-      const driftZ = Math.sin(t * 0.13) * 0.55
-
-      idleCamera.x += driftX
-      idleCamera.y += driftY
-      idleCamera.z += driftZ
-
-      idleTarget.x += driftX * 0.22
-      idleTarget.y += driftY * 0.45
-      idleTarget.z += driftZ * 0.12
-    }
-
-    camera.position.lerp(idleCamera, 0.028)
-    controls.target.lerp(idleTarget, 0.042)
   }
 
+  if (p >= 1) {
+    desiredCameraPosition.copy(flight.endCam)
+    desiredTarget.copy(flight.endTarget)
+    controls.enabled = true
+    controls.enableDamping = true
+    flight = null
+  }
+} else {
+  idleCamera.copy(desiredCameraPosition)
+  idleTarget.copy(desiredTarget)
+
+  if (activeViewName === 'hero') {
+    idleCamera.y += Math.sin(t * 0.2) * 0.12
+    idleCamera.z += Math.sin(t * 0.14) * 0.35
+    idleTarget.y += Math.sin(t * 0.18 + 0.7) * 0.08
+  }
+
+  if (activeViewName === 'about') {
+    idleCamera.x += Math.sin(t * 0.16) * 0.2
+    idleCamera.y += Math.sin(t * 0.22) * 0.1
+    idleCamera.z += Math.sin(t * 0.14) * 0.28
+  }
+
+  if (activeViewName === 'contact') {
+    idleCamera.x += Math.sin(t * 0.15) * 0.24
+    idleCamera.y += Math.sin(t * 0.21 + 0.8) * 0.12
+    idleCamera.z += Math.sin(t * 0.13) * 0.32
+    idleTarget.y += Math.sin(t * 0.24) * 0.08
+  }
+
+  if (activeViewName === 'map') {
+    const driftX = Math.sin(t * 0.16) * 0.32
+    const driftY = Math.sin(t * 0.21 + 0.8) * 0.26
+    const driftZ = Math.sin(t * 0.13) * 0.55
+
+    idleCamera.x += driftX
+    idleCamera.y += driftY
+    idleCamera.z += driftZ
+
+    idleTarget.x += driftX * 0.22
+    idleTarget.y += driftY * 0.45
+    idleTarget.z += driftZ * 0.12
+  }
+
+  camera.position.lerp(idleCamera, 0.028)
+  controls.target.lerp(idleTarget, 0.042)
+}
   controls.update()
 
-  if (heroTitle) {
-    titleForward.subVectors(controls.target, camera.position).normalize()
-    titleRight.crossVectors(titleForward, camera.up).normalize()
-    titleUp.crossVectors(titleRight, titleForward).normalize()
+  titleForward.subVectors(controls.target, camera.position).normalize()
+  titleRight.crossVectors(titleForward, camera.up).normalize()
+  titleUp.crossVectors(titleRight, titleForward).normalize()
 
-    const titleDistance = activeViewName === 'map' ? 19 : 15.5
-    const titleLift = activeViewName === 'map' ? 6.4 : 4.8
+  const titleDistance = activeViewName === 'map' ? 19 : 15.5
+  const titleLift = activeViewName === 'map' ? 6.4 : 4.8
 
-    titleAnchor.copy(camera.position)
-    titleAnchor.addScaledVector(titleForward, titleDistance)
-    titleAnchor.addScaledVector(titleUp, titleLift)
+  titleAnchor.copy(camera.position)
+  titleAnchor.addScaledVector(titleForward, titleDistance)
+  titleAnchor.addScaledVector(titleUp, titleLift)
 
-    titleAnchor.x += Math.sin(t * 0.22) * 0.12
-    titleAnchor.y += Math.sin(t * 0.42 + 1.3) * 0.08
-    titleAnchor.z += Math.cos(t * 0.18) * 0.1
+  titleAnchor.x += Math.sin(t * 0.22) * 0.12
+  titleAnchor.y += Math.sin(t * 0.42 + 1.3) * 0.08
+  titleAnchor.z += Math.cos(t * 0.18) * 0.1
 
-    heroTitle.position.lerp(titleAnchor, flight ? 0.12 : 0.09)
+  heroTitle.position.lerp(titleAnchor, flight ? 0.12 : 0.09)
 
-    const titlePulse = 1 + Math.sin(t * 0.9 + heroTitle.userData.floatPhase) * 0.018
-    heroTitle.scale.setScalar(titlePulse)
+  const titlePulse = 1 + Math.sin(t * 0.9 + heroTitle.userData.floatPhase) * 0.018
+  heroTitle.scale.setScalar(titlePulse)
 
-    heroTitle.lookAt(camera.position)
+  heroTitle.lookAt(camera.position)
 
-    titleGlowLight.intensity =
-      1.6 + Math.sin(t * 1.4 + heroTitle.userData.floatPhase) * 0.12
-  }
+  titleGlowLight.intensity =
+    1.6 + Math.sin(t * 1.4 + heroTitle.userData.floatPhase) * 0.12
 
   renderer.render(scene, camera)
 }
