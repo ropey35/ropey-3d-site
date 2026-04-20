@@ -94,6 +94,10 @@ const greenFill = new THREE.DirectionalLight(0x58ffd0, 0.35)
 greenFill.position.set(-8, 5, -8)
 scene.add(greenFill)
 
+const shopWarmLight = new THREE.PointLight(0xffb463, 1.2, 26, 2)
+shopWarmLight.position.set(35, 11, 14)
+scene.add(shopWarmLight)
+
 // --------------------------------------------------
 // Star fields
 // --------------------------------------------------
@@ -493,6 +497,149 @@ function makeOrbitSparkles(
   })
 }
 
+function makeCrate(parent, x, y, z, scale = 1) {
+  const crate = new THREE.Mesh(
+    new THREE.BoxGeometry(0.45 * scale, 0.36 * scale, 0.45 * scale),
+    new THREE.MeshStandardMaterial({ color: 0x8f6b47 })
+  )
+  crate.position.set(x, y, z)
+  parent.add(crate)
+}
+
+function makeCampfire(parent, x, y, z, scale = 1) {
+  const fireGroup = new THREE.Group()
+
+  for (let i = 0; i < 5; i++) {
+    const rock = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.12 * scale, 0),
+      new THREE.MeshStandardMaterial({ color: 0x7d7d7d })
+    )
+    const angle = (Math.PI * 2 * i) / 5
+    rock.position.set(Math.cos(angle) * 0.18 * scale, 0, Math.sin(angle) * 0.18 * scale)
+    fireGroup.add(rock)
+  }
+
+  const flame = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12 * scale, 10, 10),
+    new THREE.MeshBasicMaterial({
+      color: 0xffad4d,
+      transparent: true,
+      opacity: 0.95,
+    })
+  )
+  flame.position.y = 0.12 * scale
+  fireGroup.add(flame)
+
+  const ember = new THREE.Mesh(
+    new THREE.SphereGeometry(0.07 * scale, 10, 10),
+    new THREE.MeshBasicMaterial({
+      color: 0xff6a2a,
+      transparent: true,
+      opacity: 0.9,
+    })
+  )
+  ember.position.y = 0.22 * scale
+  fireGroup.add(ember)
+
+  fireGroup.position.set(x, y, z)
+  fireGroup.userData.flame = flame
+  fireGroup.userData.ember = ember
+  parent.add(fireGroup)
+
+  return fireGroup
+}
+
+function makeLantern(parent, x, y, z, scale = 1) {
+  const lanternGroup = new THREE.Group()
+
+  const post = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.03 * scale, 0.04 * scale, 0.55 * scale, 8),
+    new THREE.MeshStandardMaterial({ color: 0x7b5436 })
+  )
+  post.position.y = 0.27 * scale
+  lanternGroup.add(post)
+
+  const glow = new THREE.Mesh(
+    new THREE.SphereGeometry(0.09 * scale, 10, 10),
+    new THREE.MeshBasicMaterial({
+      color: 0xffde93,
+      transparent: true,
+      opacity: 0.95,
+    })
+  )
+  glow.position.y = 0.54 * scale
+  lanternGroup.add(glow)
+
+  lanternGroup.position.set(x, y, z)
+  parent.add(lanternGroup)
+
+  return lanternGroup
+}
+
+function makeBazaarStall(parent, x, y, z, scale = 1) {
+  const stall = new THREE.Group()
+
+  const table = new THREE.Mesh(
+    new THREE.BoxGeometry(0.95 * scale, 0.12 * scale, 0.6 * scale),
+    new THREE.MeshStandardMaterial({ color: 0x8f6b47 })
+  )
+  table.position.set(0, 0.36 * scale, 0)
+  stall.add(table)
+
+  const rug = new THREE.Mesh(
+    new THREE.BoxGeometry(1.18 * scale, 0.03 * scale, 0.86 * scale),
+    new THREE.MeshStandardMaterial({ color: 0xa85d66 })
+  )
+  rug.position.set(0, 0.02 * scale, 0.12 * scale)
+  stall.add(rug)
+
+  const roof = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2 * scale, 0.08 * scale, 0.82 * scale),
+    new THREE.MeshStandardMaterial({ color: 0xd9cfa8 })
+  )
+  roof.position.set(0, 1.02 * scale, 0)
+  roof.rotation.z = 0.08
+  stall.add(roof)
+
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x7b5436 })
+
+  const postA = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04 * scale, 0.04 * scale, 0.98 * scale, 8),
+    postMat
+  )
+  postA.position.set(-0.48 * scale, 0.52 * scale, -0.22 * scale)
+  stall.add(postA)
+
+  const postB = postA.clone()
+  postB.position.set(0.48 * scale, 0.52 * scale, -0.22 * scale)
+  stall.add(postB)
+
+  const postC = postA.clone()
+  postC.position.set(-0.48 * scale, 0.52 * scale, 0.22 * scale)
+  stall.add(postC)
+
+  const postD = postA.clone()
+  postD.position.set(0.48 * scale, 0.52 * scale, 0.22 * scale)
+  stall.add(postD)
+
+  const clothA = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18 * scale, 0.28 * scale, 0.06 * scale),
+    new THREE.MeshStandardMaterial({ color: 0x9fe7ff })
+  )
+  clothA.position.set(-0.22 * scale, 0.82 * scale, 0.34 * scale)
+  stall.add(clothA)
+
+  const clothB = clothA.clone()
+  clothB.position.x = 0.12 * scale
+  clothB.material = new THREE.MeshStandardMaterial({ color: 0xffd483 })
+  stall.add(clothB)
+
+  stall.position.set(x, y, z)
+  parent.add(stall)
+
+  return stall
+}
+
 // --------------------------------------------------
 // Floating island placeholders
 // --------------------------------------------------
@@ -582,6 +729,38 @@ function makeIsland({
     )
     pedestal.position.set(0, 1.95, -0.15)
     island.add(pedestal)
+  }
+
+  if (type === 'shop') {
+    makeTree(island, -1.25, -0.75, 0.8, 0x4c9659)
+    makePalm(island, 1.05, -0.8, 0.72, 0x43a567)
+    makeCrystal(island, -0.25, 1.98, -0.4, 0xbfe9ff, 0.8)
+    makeMistCluster(island, 0.6, 2.05, 0.8, 0.8, 3)
+
+    makeBazaarStall(island, 0.22, 1.92, 0.12, 1)
+    makeCrate(island, -0.75, 2.05, 0.72, 1)
+    makeCrate(island, -0.25, 2.05, 0.9, 0.82)
+
+    const fire = makeCampfire(island, 1.05, 1.96, 0.8, 1)
+    fire.userData.isAnimatedCampfire = true
+
+    const lanternA = makeLantern(island, 0.95, 1.95, -0.2, 1)
+    lanternA.userData.isAnimatedLantern = true
+
+    const sign = new THREE.Mesh(
+      new THREE.BoxGeometry(0.62, 0.18, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0xd9cfa8 })
+    )
+    sign.position.set(-0.95, 2.45, 0.15)
+    sign.rotation.y = 0.15
+    island.add(sign)
+
+    const signPost = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.04, 0.72, 8),
+      new THREE.MeshStandardMaterial({ color: 0x7b5436 })
+    )
+    signPost.position.set(-0.95, 2.18, 0.15)
+    island.add(signPost)
   }
 
   scene.add(island)
@@ -678,39 +857,6 @@ function makePlanetMap({
     echoGarden.add(hill)
   }
 
-  const markerA = new THREE.Mesh(
-    new THREE.ConeGeometry(0.22, 0.85, 8),
-    new THREE.MeshStandardMaterial({
-      color: 0xffd86b,
-      emissive: 0xffd86b,
-      emissiveIntensity: 0.18,
-    })
-  )
-  markerA.position.set(-2.2, 0.95, -1.5)
-  echoGarden.add(markerA)
-
-  const markerB = new THREE.Mesh(
-    new THREE.ConeGeometry(0.22, 0.85, 8),
-    new THREE.MeshStandardMaterial({
-      color: 0x86eaff,
-      emissive: 0x86eaff,
-      emissiveIntensity: 0.18,
-    })
-  )
-  markerB.position.set(2.4, 0.95, 1.1)
-  echoGarden.add(markerB)
-
-  const markerC = new THREE.Mesh(
-    new THREE.ConeGeometry(0.22, 0.85, 8),
-    new THREE.MeshStandardMaterial({
-      color: 0xb3ff9a,
-      emissive: 0xb3ff9a,
-      emissiveIntensity: 0.18,
-    })
-  )
-  markerC.position.set(0.6, 0.95, 2.9)
-  echoGarden.add(markerC)
-
   makeMistCluster(echoGarden, -2.8, 0.9, -1.8, 1.8, 7)
   makeMistCluster(echoGarden, 2.5, 0.9, 1.5, 1.5, 6)
   makeMistCluster(echoGarden, 0.2, 1.15, -0.5, 2.0, 8)
@@ -796,6 +942,15 @@ const aboutIsland = makeIsland({
   type: 'about',
 })
 
+const shopIsland = makeIsland({
+  position: [35, 6.2, 14],
+  scale: 1.18,
+  topColor: 0x5b9e71,
+  bottomColor: 0x2b5f4c,
+  accentColor: 0xe2d2a9,
+  type: 'shop',
+})
+
 const contactCloud = new THREE.Group()
 contactCloud.position.set(-30, 8, -32)
 contactCloud.userData.baseY = 8
@@ -805,7 +960,7 @@ contactCloud.userData.floatAmount = 0.18
 floatingGroups.push(contactCloud)
 scene.add(contactCloud)
 
-loadGLBModel('/models/contact-cloud-01.glb', {
+loadGLBModel('/models/contact-cloud01.glb', {
   parent: contactCloud,
   position: [0, 0, 0],
   rotation: [0, 0, 0],
@@ -859,15 +1014,6 @@ makeOrbitSparkles(aboutIsland, {
   speed: 0.98,
 })
 
-makeOrbitSparkles(aboutIsland, {
-  anchor: [-0.55, 2.05, 0.55],
-  count: 10,
-  radiusMin: 0.22,
-  radiusMax: 0.72,
-  height: 0.22,
-  speed: 0.9,
-})
-
 makeOrbitSparkles(contactCloud, {
   anchor: [0, 2.65, 0],
   count: 18,
@@ -877,22 +1023,22 @@ makeOrbitSparkles(contactCloud, {
   speed: 1.2,
 })
 
-makeOrbitSparkles(contactCloud, {
-  anchor: [0, 1.7, 0.1],
-  count: 12,
-  radiusMin: 0.55,
-  radiusMax: 1.55,
+makeOrbitSparkles(shopIsland, {
+  anchor: [0.2, 2.4, 0.35],
+  count: 16,
+  radiusMin: 0.28,
+  radiusMax: 1.05,
   height: 0.3,
-  speed: 0.82,
+  speed: 0.86,
 })
 
-makeOrbitSparkles(contactCloud, {
-  anchor: [0.18, 2.18, -0.1],
-  count: 10,
-  radiusMin: 0.22,
-  radiusMax: 0.62,
-  height: 0.22,
-  speed: 1.35,
+makeOrbitSparkles(shopIsland, {
+  anchor: [0.95, 2.05, 0.8],
+  count: 12,
+  radiusMin: 0.18,
+  radiusMax: 0.5,
+  height: 0.18,
+  speed: 1.3,
 })
 
 makeOrbitSparkles(planetMap.echoGarden, {
@@ -904,14 +1050,158 @@ makeOrbitSparkles(planetMap.echoGarden, {
   speed: 0.52,
 })
 
-makeOrbitSparkles(planetMap.echoGarden, {
-  anchor: [-1.4, 1.05, 0.85],
-  count: 12,
-  radiusMin: 0.7,
-  radiusMax: 1.9,
-  height: 0.32,
-  speed: 0.62,
-})
+// --------------------------------------------------
+// Shop UI
+// --------------------------------------------------
+const SHOP_PRODUCTS = [
+  {
+    title: 'Ropey World Print',
+    type: 'Print',
+    price: '$28',
+    image: '/products/ropey-world-print.png',
+    url: '/shop/ropey-world-print',
+    blurb: 'Archival art print from the world of Ropey.',
+  },
+  {
+    title: 'Island Map Print',
+    type: 'Print',
+    price: '$32',
+    image: '/products/island-map-print.png',
+    url: '/shop/island-map-print',
+    blurb: 'Treasure-map style print of the floating islands.',
+  },
+  {
+    title: 'Logo Sticker Pack',
+    type: 'Merch',
+    price: '$12',
+    image: '/products/logo-sticker-pack.png',
+    url: '/shop/logo-sticker-pack',
+    blurb: 'Glossy sticker pack with Ropey emblems and symbols.',
+  },
+  {
+    title: 'Ropey Camp Tee',
+    type: 'Merch',
+    price: '$34',
+    image: '/products/ropey-camp-tee.png',
+    url: '/shop/ropey-camp-tee',
+    blurb: 'Soft shirt with the camp bazaar vibe.',
+  },
+  {
+    title: 'Wallpaper Bundle',
+    type: 'Digital',
+    price: '$9',
+    image: '/products/wallpaper-bundle.png',
+    url: '/shop/wallpaper-bundle',
+    blurb: 'Transparent PNG and wallpaper set for desktop and phone.',
+  },
+  {
+    title: 'Lore + Art Bundle',
+    type: 'Digital',
+    price: '$14',
+    image: '/products/lore-art-bundle.png',
+    url: '/shop/lore-art-bundle',
+    blurb: 'A small digital pack with art and worldbuilding notes.',
+  },
+]
+
+function ensureShopButton() {
+  const nav = document.querySelector('#ui')
+  if (!nav) return
+
+  if (!nav.querySelector('[data-view="shop"]')) {
+    const shopButton = document.createElement('button')
+    shopButton.type = 'button'
+    shopButton.dataset.view = 'shop'
+    shopButton.textContent = 'Shop'
+
+    const mapButton = nav.querySelector('[data-view="map"]')
+    if (mapButton) {
+      nav.insertBefore(shopButton, mapButton)
+    } else {
+      nav.appendChild(shopButton)
+    }
+  }
+}
+
+function createShopPanel() {
+  if (document.querySelector('#shop-panel')) {
+    return document.querySelector('#shop-panel')
+  }
+
+  const panel = document.createElement('section')
+  panel.id = 'shop-panel'
+  panel.className = 'shop-panel'
+  panel.innerHTML = `
+    <div class="shop-panel-header">
+      <div>
+        <p class="shop-kicker">BAZAAR GOODS</p>
+        <h2>Shop the Island</h2>
+        <p class="shop-sub">Prints, merch, and digital relics from the Ropey world.</p>
+      </div>
+      <button class="shop-close" type="button" aria-label="Close shop panel">✕</button>
+    </div>
+
+    <div class="shop-rail" id="shop-rail"></div>
+  `
+
+  app.appendChild(panel)
+
+  panel.querySelector('.shop-close').addEventListener('click', () => {
+    closeShopPanel()
+  })
+
+  return panel
+}
+
+function renderShopProducts() {
+  const rail = document.querySelector('#shop-rail')
+  if (!rail) return
+
+  rail.innerHTML = SHOP_PRODUCTS.map(
+    (product) => `
+      <article class="shop-card">
+        <div class="shop-thumb">
+          <img src="${product.image}" alt="${product.title}" />
+        </div>
+
+        <div class="shop-meta">
+          <span class="shop-type">${product.type}</span>
+          <span class="shop-price">${product.price}</span>
+        </div>
+
+        <h3>${product.title}</h3>
+        <p>${product.blurb}</p>
+
+        <button
+          class="shop-buy"
+          type="button"
+          data-product-url="${product.url}"
+        >
+          Buy
+        </button>
+      </article>
+    `
+  ).join('')
+
+  rail.querySelectorAll('.shop-buy').forEach((button) => {
+    button.addEventListener('click', () => {
+      const url = button.dataset.productUrl
+      if (url) window.location.href = url
+    })
+  })
+}
+
+const shopPanel = createShopPanel()
+renderShopProducts()
+ensureShopButton()
+
+function openShopPanel() {
+  shopPanel.classList.add('is-open')
+}
+
+function closeShopPanel() {
+  shopPanel.classList.remove('is-open')
+}
 
 // --------------------------------------------------
 // Camera views
@@ -928,6 +1218,10 @@ const VIEWS = {
   contact: {
     camera: [-30, 12.15, -11.15],
     target: [-30, 10.5, -32],
+  },
+  shop: {
+    camera: [44, 11.6, 29],
+    target: [35, 7.4, 14],
   },
   map: {
     camera: [0, -110, -294],
@@ -949,8 +1243,6 @@ const titleAnchor = new THREE.Vector3()
 const titleForward = new THREE.Vector3()
 const titleRight = new THREE.Vector3()
 const titleUp = new THREE.Vector3()
-const settleCameraPoint = new THREE.Vector3()
-const settleTargetPoint = new THREE.Vector3()
 
 function smootherStep(x) {
   const clamped = THREE.MathUtils.clamp(x, 0, 1)
@@ -958,57 +1250,37 @@ function smootherStep(x) {
 }
 
 function cinematicEase(x) {
-  return smootherStep(Math.pow(THREE.MathUtils.clamp(x, 0, 1), 1.22))
+  return smootherStep(Math.pow(THREE.MathUtils.clamp(x, 0, 1), 1.18))
 }
 
-function buildIslandToMapFlight(startCam, startTarget, endCam, endTarget) {
+function buildFlight(startCam, startTarget, endCam, endTarget) {
   const distance = startCam.distanceTo(endCam)
-  const startForward = startTarget.clone().sub(startCam).normalize()
-  const directDir = endCam.clone().sub(startCam).normalize()
-  const openingDir = startForward.clone().lerp(directDir, 0.84).normalize()
+  const lift = THREE.MathUtils.clamp(distance * 0.08, 4, 18)
 
-  const lift = THREE.MathUtils.clamp(distance * 0.082, 8, 22)
-  const initialPush = THREE.MathUtils.clamp(distance * 0.08, 6, 12)
+  const camP1 = startCam.clone().lerp(endCam, 0.2)
+  camP1.y += lift * 0.7
 
-  const camP1 = startCam.clone().add(openingDir.clone().multiplyScalar(initialPush))
-  camP1.y += lift * 0.06
-
-  const camP2 = startCam.clone().lerp(endCam, 0.3)
-  camP2.y += lift * 0.34
-
-  const camP3 = startCam.clone().lerp(endCam, 0.62)
-  camP3.y += lift * 0.14
-
-  const camP4 = startCam.clone().lerp(endCam, 0.9)
-  camP4.y += lift * 0.03
+  const camP2 = startCam.clone().lerp(endCam, 0.58)
+  camP2.y += lift * 0.35
 
   const camPath = new THREE.CatmullRomCurve3(
-    [startCam.clone(), camP1, camP2, camP3, camP4, endCam.clone()],
+    [startCam.clone(), camP1, camP2, endCam.clone()],
     false,
     'centripetal',
     0.5
   )
 
-  const targetLead1 = startTarget.clone().add(startForward.clone().multiplyScalar(10))
-  const targetLead2 = startTarget.clone().lerp(endTarget, 0.26)
-  const targetLead3 = startTarget.clone().lerp(endTarget, 0.58)
-  const targetLead4 = startTarget.clone().lerp(endTarget, 0.88)
+  const targetP1 = startTarget.clone().lerp(endTarget, 0.25)
+  const targetP2 = startTarget.clone().lerp(endTarget, 0.72)
 
   const targetPath = new THREE.CatmullRomCurve3(
-    [
-      startTarget.clone(),
-      targetLead1,
-      targetLead2,
-      targetLead3,
-      targetLead4,
-      endTarget.clone(),
-    ],
+    [startTarget.clone(), targetP1, targetP2, endTarget.clone()],
     false,
     'centripetal',
     0.5
   )
 
-  const duration = THREE.MathUtils.clamp(distance * 18.5, 5600, 8200)
+  const duration = THREE.MathUtils.clamp(distance * 18, 2400, 5200)
 
   return {
     camPath,
@@ -1019,69 +1291,7 @@ function buildIslandToMapFlight(startCam, startTarget, endCam, endTarget) {
   }
 }
 
-function buildMapToIslandFlight(startCam, startTarget, endCam, endTarget) {
-  const distance = startCam.distanceTo(endCam)
-  const islandClusterCenter = new THREE.Vector3(0, 6.2, -18)
-
-  const climb = THREE.MathUtils.clamp(distance * 0.1, 15, 26)
-  const launchTowardWorld = islandClusterCenter.clone().sub(startCam).normalize()
-  const finalApproachDir = endCam.clone().sub(endTarget).normalize()
-
-  const camP1 = startCam.clone().add(launchTowardWorld.clone().multiplyScalar(7.5))
-  camP1.y += climb * 0.72
-  camP1.z += 5
-
-  const camP2 = startCam.clone().lerp(endCam, 0.5)
-  camP2.y += climb * 0.74
-
-  const camP3 = endCam.clone().add(finalApproachDir.clone().multiplyScalar(2.2))
-  camP3.y += 0.35
-
-  const camPath = new THREE.CatmullRomCurve3(
-    [startCam.clone(), camP1, camP2, camP3, endCam.clone()],
-    false,
-    'centripetal',
-    0.5
-  )
-
-  const targetP1 = startTarget.clone().lerp(endTarget, 0.42)
-  const targetP2 = startTarget.clone().lerp(endTarget, 0.76)
-  const targetP3 = endTarget.clone()
-
-  const targetPath = new THREE.CatmullRomCurve3(
-    [
-      startTarget.clone(),
-      targetP1,
-      targetP2,
-      targetP3,
-      endTarget.clone(),
-    ],
-    false,
-    'centripetal',
-    0.5
-  )
-
-  const duration = THREE.MathUtils.clamp(distance * 19, 5900, 7800)
-
-  // Start the final settle later so the handoff is subtle.
-  const settleStart = 0.9
-
-  const settleCamStart = camPath.getPointAt(settleStart, new THREE.Vector3())
-  const settleTargetStart = targetPath.getPointAt(settleStart, new THREE.Vector3())
-
-  return {
-    camPath,
-    targetPath,
-    duration,
-    endCam: endCam.clone(),
-    endTarget: endTarget.clone(),
-    settleStart,
-    settleCamStart,
-    settleTargetStart,
-  }
-}
-
-function beginFlight(builder, endView, type, destinationName) {
+function beginFlight(endView, destinationName) {
   controls.enabled = false
   controls.enableDamping = false
 
@@ -1091,45 +1301,41 @@ function beginFlight(builder, endView, type, destinationName) {
   const endTarget = new THREE.Vector3(...endView.target)
 
   flight = {
-    type,
     destinationName,
     startTime: performance.now(),
-    ...builder(startCam, startTarget, endCam, endTarget),
+    ...buildFlight(startCam, startTarget, endCam, endTarget),
   }
+}
+
+function bindNavButtons() {
+  document.querySelectorAll('#ui button').forEach((button) => {
+    button.addEventListener('click', () => {
+      startFlight(button.dataset.view)
+    })
+  })
 }
 
 function startFlight(viewName) {
   const view = VIEWS[viewName]
   if (!view) return
 
-  if (!flight && viewName === activeViewName) return
+  if (!flight && viewName === activeViewName) {
+    if (viewName === 'shop') openShopPanel()
+    return
+  }
+
   if (flight && flight.destinationName === viewName) return
 
-  const previousViewName = activeViewName
   activeViewName = viewName
 
-  if (viewName === 'map') {
-    beginFlight(buildIslandToMapFlight, view, 'to-map', viewName)
-    return
+  if (viewName !== 'shop') {
+    closeShopPanel()
   }
 
-  if (previousViewName === 'map') {
-    beginFlight(buildMapToIslandFlight, view, 'from-map', viewName)
-    return
-  }
-
-  flight = null
-  controls.enabled = true
-  controls.enableDamping = true
-  desiredCameraPosition.set(...view.camera)
-  desiredTarget.set(...view.target)
+  beginFlight(view, viewName)
 }
 
-document.querySelectorAll('#ui button').forEach((button) => {
-  button.addEventListener('click', () => {
-    startFlight(button.dataset.view)
-  })
-})
+bindNavButtons()
 
 // --------------------------------------------------
 // Animate
@@ -1156,6 +1362,20 @@ function animate() {
 
     const pulse = 1 + Math.sin(t * 1.4 + index) * 0.04
     cloud.scale.setScalar(pulse)
+  })
+
+  scene.traverse((obj) => {
+    if (obj.userData.isAnimatedCampfire) {
+      const flame = obj.userData.flame
+      const ember = obj.userData.ember
+      flame.scale.y = 1 + Math.sin(t * 7.2) * 0.14
+      flame.position.y = 0.12 + Math.sin(t * 6.3) * 0.015
+      ember.position.y = 0.22 + Math.sin(t * 8.1 + 0.5) * 0.018
+    }
+
+    if (obj.userData.isAnimatedLantern) {
+      obj.rotation.z = Math.sin(t * 1.5) * 0.06
+    }
   })
 
   orbitSparkleSystems.forEach((system, systemIndex) => {
@@ -1187,29 +1407,11 @@ function animate() {
   dustFieldB.rotation.y = -t * 0.017
   dustFieldB.position.y = Math.sin(t * 0.7) * 1.2
 
- if (flight) {
-  const elapsed = (performance.now() - flight.startTime) / flight.duration
-  const p = Math.min(elapsed, 1)
-  const eased = cinematicEase(p)
+  if (flight) {
+    const elapsed = (performance.now() - flight.startTime) / flight.duration
+    const p = Math.min(elapsed, 1)
+    const eased = cinematicEase(p)
 
-  if (flight.type === 'from-map') {
-    if (eased < flight.settleStart) {
-      flight.camPath.getPointAt(eased, flightCameraPoint)
-      flight.targetPath.getPointAt(eased, flightTargetPoint)
-
-      camera.position.copy(flightCameraPoint)
-      controls.target.copy(flightTargetPoint)
-    } else {
-      const settleRaw =
-        (eased - flight.settleStart) / (1 - flight.settleStart)
-
-      // Pure ease-out so the motion dies down instead of launching.
-      const settleT = 1 - Math.pow(1 - THREE.MathUtils.clamp(settleRaw, 0, 1), 3)
-
-      camera.position.lerpVectors(flight.settleCamStart, flight.endCam, settleT)
-      controls.target.lerpVectors(flight.settleTargetStart, flight.endTarget, settleT)
-    }
-  } else {
     flight.camPath.getPointAt(eased, flightCameraPoint)
     flight.targetPath.getPointAt(eased, flightTargetPoint)
 
@@ -1220,55 +1422,68 @@ function animate() {
 
     controls.target.copy(flightTargetPoint)
     controls.target.y += glideLift * 0.18
+
+    if (p >= 1) {
+      desiredCameraPosition.copy(flight.endCam)
+      desiredTarget.copy(flight.endTarget)
+      controls.enabled = true
+      controls.enableDamping = true
+
+      const destinationName = flight.destinationName
+      flight = null
+
+      if (destinationName === 'shop') {
+        openShopPanel()
+      }
+    }
+  } else {
+    idleCamera.copy(desiredCameraPosition)
+    idleTarget.copy(desiredTarget)
+
+    if (activeViewName === 'hero') {
+      idleCamera.y += Math.sin(t * 0.2) * 0.12
+      idleCamera.z += Math.sin(t * 0.14) * 0.35
+      idleTarget.y += Math.sin(t * 0.18 + 0.7) * 0.08
+    }
+
+    if (activeViewName === 'about') {
+      idleCamera.x += Math.sin(t * 0.16) * 0.2
+      idleCamera.y += Math.sin(t * 0.22) * 0.1
+      idleCamera.z += Math.sin(t * 0.14) * 0.28
+    }
+
+    if (activeViewName === 'contact') {
+      idleCamera.x += Math.sin(t * 0.15) * 0.24
+      idleCamera.y += Math.sin(t * 0.21 + 0.8) * 0.12
+      idleCamera.z += Math.sin(t * 0.13) * 0.32
+      idleTarget.y += Math.sin(t * 0.24) * 0.08
+    }
+
+    if (activeViewName === 'shop') {
+      idleCamera.x += Math.sin(t * 0.15) * 0.16
+      idleCamera.y += Math.sin(t * 0.2 + 1.2) * 0.08
+      idleCamera.z += Math.sin(t * 0.14) * 0.24
+      idleTarget.y += Math.sin(t * 0.22) * 0.05
+    }
+
+    if (activeViewName === 'map') {
+      const driftX = Math.sin(t * 0.16) * 0.32
+      const driftY = Math.sin(t * 0.21 + 0.8) * 0.26
+      const driftZ = Math.sin(t * 0.13) * 0.55
+
+      idleCamera.x += driftX
+      idleCamera.y += driftY
+      idleCamera.z += driftZ
+
+      idleTarget.x += driftX * 0.22
+      idleTarget.y += driftY * 0.45
+      idleTarget.z += driftZ * 0.12
+    }
+
+    camera.position.lerp(idleCamera, 0.028)
+    controls.target.lerp(idleTarget, 0.042)
   }
 
-  if (p >= 1) {
-    desiredCameraPosition.copy(flight.endCam)
-    desiredTarget.copy(flight.endTarget)
-    controls.enabled = true
-    controls.enableDamping = true
-    flight = null
-  }
-} else {
-  idleCamera.copy(desiredCameraPosition)
-  idleTarget.copy(desiredTarget)
-
-  if (activeViewName === 'hero') {
-    idleCamera.y += Math.sin(t * 0.2) * 0.12
-    idleCamera.z += Math.sin(t * 0.14) * 0.35
-    idleTarget.y += Math.sin(t * 0.18 + 0.7) * 0.08
-  }
-
-  if (activeViewName === 'about') {
-    idleCamera.x += Math.sin(t * 0.16) * 0.2
-    idleCamera.y += Math.sin(t * 0.22) * 0.1
-    idleCamera.z += Math.sin(t * 0.14) * 0.28
-  }
-
-  if (activeViewName === 'contact') {
-    idleCamera.x += Math.sin(t * 0.15) * 0.24
-    idleCamera.y += Math.sin(t * 0.21 + 0.8) * 0.12
-    idleCamera.z += Math.sin(t * 0.13) * 0.32
-    idleTarget.y += Math.sin(t * 0.24) * 0.08
-  }
-
-  if (activeViewName === 'map') {
-    const driftX = Math.sin(t * 0.16) * 0.32
-    const driftY = Math.sin(t * 0.21 + 0.8) * 0.26
-    const driftZ = Math.sin(t * 0.13) * 0.55
-
-    idleCamera.x += driftX
-    idleCamera.y += driftY
-    idleCamera.z += driftZ
-
-    idleTarget.x += driftX * 0.22
-    idleTarget.y += driftY * 0.45
-    idleTarget.z += driftZ * 0.12
-  }
-
-  camera.position.lerp(idleCamera, 0.028)
-  controls.target.lerp(idleTarget, 0.042)
-}
   controls.update()
 
   titleForward.subVectors(controls.target, camera.position).normalize()
