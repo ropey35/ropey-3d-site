@@ -938,7 +938,7 @@ loadGLBModel('/models/header-logo-01.glb', {
 })
 
 const aboutIsland = makeIsland({
-  position: [28, 4.5, -20],
+  position: [28, 32, -20],
   scale: 1.25,
   topColor: 0x5faa73,
   bottomColor: 0x2d5f50,
@@ -1220,8 +1220,8 @@ const VIEWS = {
     target: [0, 8.4, 10],
   },
   about: {
-    camera: [29.5, 10.3, -4.2],
-    target: [28, 5.0, -20],
+    camera: [30.5, 17.8, -3.5],
+    target: [28, 36, -20],
   },
   contact: {
     camera: [-30, 12.15, -11.15],
