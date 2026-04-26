@@ -34,7 +34,7 @@ controls.enablePan = false
 controls.minDistance = 10
 controls.maxDistance = 280
 controls.maxPolarAngle = Math.PI / 2.05
-controls.target.set(0, 3.4, 0)
+controls.target.set(0, 8.4, 10)
 
 const gltfLoader = new GLTFLoader()
 
@@ -97,6 +97,7 @@ scene.add(greenFill)
 const shopWarmLight = new THREE.PointLight(0xffb463, 1.2, 26, 2)
 shopWarmLight.position.set(35, 11, 14)
 scene.add(shopWarmLight)
+
 
 // --------------------------------------------------
 // Star fields
@@ -899,11 +900,14 @@ function makePlanetMap({
 // Create scene placeholders / models
 // --------------------------------------------------
 const heroIsland = new THREE.Group()
-heroIsland.position.set(0, 0, 0)
-heroIsland.userData.baseY = 0
+
+// Main home island world location
+heroIsland.position.set(0, 5, 10)
+heroIsland.userData.baseY = 5
 heroIsland.userData.baseRotY = 0
 heroIsland.userData.floatSpeed = 0.78
 heroIsland.userData.floatAmount = 0.16
+
 floatingGroups.push(heroIsland)
 scene.add(heroIsland)
 
@@ -960,7 +964,7 @@ contactCloud.userData.floatAmount = 0.18
 floatingGroups.push(contactCloud)
 scene.add(contactCloud)
 
-loadGLBModel('/models/contact-cloud01.glb', {
+loadGLBModel('/models/contact-cloud-02.glb', {
   parent: contactCloud,
   position: [0, 0, 0],
   rotation: [0, 0, 0],
@@ -970,10 +974,22 @@ loadGLBModel('/models/contact-cloud01.glb', {
 const MAP_CENTER = new THREE.Vector3(0, -188, -360)
 const MAP_RADIUS = 58
 
-const planetMap = makePlanetMap({
-  position: [MAP_CENTER.x, MAP_CENTER.y, MAP_CENTER.z],
-  radius: MAP_RADIUS,
+const mapIslandButton = new THREE.Group()
+mapIslandButton.position.set(0, -130, -360)
+mapIslandButton.userData.baseY = -130
+mapIslandButton.userData.baseRotY = 0
+mapIslandButton.userData.floatSpeed = 0.5
+mapIslandButton.userData.floatAmount = 0.22
+floatingGroups.push(mapIslandButton)
+scene.add(mapIslandButton)
+
+loadGLBModel('/models/MAP island draft 1.glb', {
+  parent: mapIslandButton,
+  position: [10, -45, -55],
+  rotation: [0, 0, 0],
+  scale: [90, 90, 90],
 })
+
 
 // --------------------------------------------------
 // Local sparkle swirls
@@ -1041,14 +1057,6 @@ makeOrbitSparkles(shopIsland, {
   speed: 1.3,
 })
 
-makeOrbitSparkles(planetMap.echoGarden, {
-  anchor: [0.4, 1.2, -0.2],
-  count: 16,
-  radiusMin: 1.1,
-  radiusMax: 3.1,
-  height: 0.42,
-  speed: 0.52,
-})
 
 // --------------------------------------------------
 // Shop UI
@@ -1209,7 +1217,7 @@ function closeShopPanel() {
 const VIEWS = {
   hero: {
     camera: [0, 12.8, 31],
-    target: [0, 3.4, 0],
+    target: [0, 8.4, 10],
   },
   about: {
     camera: [29.5, 10.3, -4.2],
@@ -1253,7 +1261,8 @@ function cinematicEase(x) {
   return smootherStep(Math.pow(THREE.MathUtils.clamp(x, 0, 1), 1.18))
 }
 
-function buildFlight(startCam, startTarget, endCam, endTarget) {
+// buildFlight(...)
+function buildStandardFlight(startCam, startTarget, endCam, endTarget) {
   const distance = startCam.distanceTo(endCam)
   const lift = THREE.MathUtils.clamp(distance * 0.08, 4, 18)
 
@@ -1291,7 +1300,97 @@ function buildFlight(startCam, startTarget, endCam, endTarget) {
   }
 }
 
-function beginFlight(endView, destinationName) {
+
+
+// add buildFromMapFlight(...)
+function buildFromMapFlight(
+  startCam,
+  startTarget,
+  endCam,
+  endTarget,
+  destinationName
+) {
+  const distance = startCam.distanceTo(endCam)
+  const worldUp = new THREE.Vector3(0, 1, 0)
+
+  const travelDir = endCam.clone().sub(startCam).normalize()
+  const lateral = new THREE.Vector3().crossVectors(worldUp, travelDir).normalize()
+  const finalApproachDir = endCam.clone().sub(endTarget).normalize()
+
+  let sideSign = 1
+  if (destinationName === 'contact') sideSign = -1
+  if (destinationName === 'hero') sideSign = 1
+  if (destinationName === 'about') sideSign = 1
+  if (destinationName === 'shop') sideSign = -1
+
+  let sideAmount = THREE.MathUtils.clamp(distance * 0.08, 10, 26)
+
+  if (destinationName === 'hero') sideAmount *= 0.72
+  if (destinationName === 'shop') sideAmount *= 0.86
+
+  const climb = THREE.MathUtils.clamp(distance * 0.11, 16, 34)
+
+  const camP1 = startCam.clone().lerp(endCam, 0.18)
+  camP1.addScaledVector(lateral, sideAmount * 0.9 * sideSign)
+  camP1.y += climb * 0.92
+
+  const camP2 = startCam.clone().lerp(endCam, 0.44)
+  camP2.addScaledVector(lateral, sideAmount * 0.48 * sideSign)
+  camP2.y += climb * 0.54
+
+  const camP3 = startCam.clone().lerp(endCam, 0.74)
+  camP3.addScaledVector(lateral, sideAmount * 0.14 * sideSign)
+  camP3.y += climb * 0.16
+
+  const nearApproach = endCam
+    .clone()
+    .add(finalApproachDir.clone().multiplyScalar(1.4))
+  nearApproach.y += 0.08
+
+  const camPath = new THREE.CatmullRomCurve3(
+    [
+      startCam.clone(),
+      camP1,
+      camP2,
+      camP3,
+      nearApproach,
+      endCam.clone(),
+    ],
+    false,
+    'centripetal',
+    0.5
+  )
+
+  const targetP1 = startTarget.clone().lerp(endTarget, 0.3)
+  const targetP2 = startTarget.clone().lerp(endTarget, 0.58)
+  const targetP3 = startTarget.clone().lerp(endTarget, 0.84)
+
+  const targetPath = new THREE.CatmullRomCurve3(
+    [
+      startTarget.clone(),
+      targetP1,
+      targetP2,
+      targetP3,
+      endTarget.clone(),
+    ],
+    false,
+    'centripetal',
+    0.5
+  )
+
+  const duration = THREE.MathUtils.clamp(distance * 21.5, 4200, 7600)
+
+  return {
+    camPath,
+    targetPath,
+    duration,
+    endCam: endCam.clone(),
+    endTarget: endTarget.clone(),
+  }
+}
+
+// [main.js L1286-L1306] REPLACE beginFlight(...)
+function beginFlight(endView, destinationName, builder = buildStandardFlight) {
   controls.enabled = false
   controls.enableDamping = false
 
@@ -1303,7 +1402,7 @@ function beginFlight(endView, destinationName) {
   flight = {
     destinationName,
     startTime: performance.now(),
-    ...buildFlight(startCam, startTarget, endCam, endTarget),
+    ...builder(startCam, startTarget, endCam, endTarget, destinationName),
   }
 }
 
@@ -1315,6 +1414,8 @@ function bindNavButtons() {
   })
 }
 
+
+// [main.js REPLACE current startFlight(...)] 
 function startFlight(viewName) {
   const view = VIEWS[viewName]
   if (!view) return
@@ -1326,13 +1427,19 @@ function startFlight(viewName) {
 
   if (flight && flight.destinationName === viewName) return
 
+  const previousViewName = activeViewName
   activeViewName = viewName
 
   if (viewName !== 'shop') {
     closeShopPanel()
   }
 
-  beginFlight(view, viewName)
+  const builder =
+    previousViewName === 'map' && viewName !== 'map'
+      ? buildFromMapFlight
+      : buildStandardFlight
+
+  beginFlight(view, viewName, builder)
 }
 
 bindNavButtons()
@@ -1395,10 +1502,6 @@ function animate() {
       sparkle.mesh.material.opacity = 0.55 + pulse * 0.45
     })
   })
-
-  if (planetMap?.world) {
-    planetMap.world.rotation.y += 0.00048
-  }
 
   clouds.rotation.y = t * 0.012
   starsFar.rotation.y = t * 0.0022

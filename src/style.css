@@ -59,31 +59,33 @@ canvas {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.035);
   color: white;
   padding: 12px 22px;
   border-radius: 999px;
   cursor: pointer;
-  backdrop-filter: blur(18px) saturate(165%);
-  -webkit-backdrop-filter: blur(18px) saturate(165%);
+  backdrop-filter: blur(26px) saturate(175%);
+  -webkit-backdrop-filter: blur(26px) saturate(175%);
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-shadow:
-    0 0 12px rgba(186, 238, 255, 0.28),
-    0 1px 2px rgba(0, 0, 0, 0.35);
+    0 0 10px rgba(215, 245, 255, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.32);
   box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    inset 0 -10px 20px rgba(255, 255, 255, 0.03);
+    0 10px 24px rgba(0, 0, 0, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    inset 0 -8px 18px rgba(255, 255, 255, 0.02);
   transition:
     transform 0.22s ease,
     border-color 0.22s ease,
     box-shadow 0.22s ease,
-    background 0.22s ease,
-    text-shadow 0.22s ease;
+    background 0.20s ease,
+    text-shadow 0.22s ease,
+    filter 0.22s ease;
 }
 
 .nav button::before {
@@ -91,68 +93,71 @@ canvas {
   position: absolute;
   inset: 1px;
   border-radius: inherit;
-  z-index: -1;
+  z-index: -2;
   background:
     linear-gradient(
       135deg,
-      rgba(255, 110, 196, 0.24) 0%,
-      rgba(255, 255, 255, 0.05) 18%,
-      rgba(101, 218, 255, 0.24) 42%,
-      rgba(118, 255, 214, 0.22) 68%,
-      rgba(255, 217, 122, 0.24) 100%
+      rgba(255, 130, 210, 0.10) 0%,
+      rgba(255, 255, 255, 0.02) 20%,
+      rgba(120, 220, 255, 0.16) 44%,
+      rgba(138, 255, 225, 0.08) 70%,
+      rgba(255, 226, 150, 0.09) 100%
     ),
     linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.24) 0%,
-      rgba(255, 255, 255, 0.19) 32%,
-      rgba(255, 255, 255, 0.15) 100%
+      rgba(255, 255, 255, 0.09) 34%,
+      rgba(255, 255, 255, 0.015) 100%
     );
 }
 
 .nav button::after {
   content: '';
   position: absolute;
-  left: 10%;
-  right: 10%;
-  top: 9%;
-  height: 48%;
+  left: 7%;
+  right: 7%;
+  top: 6%;
+  height: 52%;
   border-radius: 999px;
   z-index: -1;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.42),
-    rgba(255, 255, 255, 0.08)
+    rgba(255, 255, 255, 0.68),
+    rgba(255, 255, 255, 0.12)
   );
-  opacity: 0.78;
+  opacity: 0.95;
   filter: blur(2px);
 }
 
 .nav button:hover {
   transform: translateY(-2px) scale(1.02);
-  border-color: rgba(193, 242, 255, 0.5);
+  border-color: rgba(215, 247, 255, 0.42);
+  background: rgba(255, 255, 255, 0.045);
   box-shadow:
-    0 14px 34px rgba(0, 0, 0, 0.22),
-    0 0 26px rgba(124, 220, 255, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 14px 30px rgba(0, 0, 0, 0.18),
+    0 0 22px rgba(150, 226, 255, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
   text-shadow:
-    0 0 16px rgba(194, 242, 255, 0.34),
-    0 1px 2px rgba(0, 0, 0, 0.4);
+    0 0 12px rgba(220, 248, 255, 0.24),
+    0 1px 2px rgba(0, 0, 0, 0.36);
+  filter: brightness(1.03);
 }
+
 
 .nav button:hover::before {
   background:
     linear-gradient(
       135deg,
-      rgba(255, 110, 196, 0.2) 0%,
-      rgba(255, 255, 255, 0.06) 18%,
-      rgba(101, 218, 255, 0.22) 42%,
-      rgba(118, 255, 214, 0.19) 68%,
-      rgba(255, 217, 122, 0.2) 100%
+      rgba(255, 130, 210, 0.14) 0%,
+      rgba(255, 255, 255, 0.03) 20%,
+      rgba(120, 220, 255, 0.16) 44%,
+      rgba(138, 255, 225, 0.11) 70%,
+      rgba(255, 226, 150, 0.12) 100%
     ),
     linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.28) 0%,
-      rgba(255, 255, 255, 0.09) 32%,
+      rgba(255, 255, 255, 0.10) 34%,
       rgba(255, 255, 255, 0.02) 100%
     );
 }
@@ -356,7 +361,7 @@ canvas {
 
 .shop-buy:hover {
   transform: translateY(-1px);
-  background: rgba(159, 231, 255, 0.22);
+  background: rgba(159, 231, 255, 0.29);
   box-shadow: 0 0 22px rgba(159, 231, 255, 0.12);
 }
 
